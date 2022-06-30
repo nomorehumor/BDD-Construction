@@ -1,0 +1,10 @@
+*.a
+*.so
+*.as
+*.la
+*.o
+*.lo
+*.Plo
+*.deps/
+*.libs/
+cmake-build-debug/
