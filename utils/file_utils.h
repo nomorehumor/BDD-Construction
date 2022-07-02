@@ -14,21 +14,22 @@ enum Form {
     AMO
 };
 
-struct ClauselSetInfo{
+struct FormulaSetInfo{
     Form type;
     int clauselAmount;
     int variableAmount;
+
 };
 
-struct ClauselInfo {
+struct FormulaInfo {
     Form type;
-    std::vector<int> terms;
+    std::vector<int> symbols;
 };
 
-ClauselSetInfo readClauselSetInfo(FILE* file);
+FormulaSetInfo readClauselSetInfo(FILE* file);
 
-ClauselInfo transformAMOtoDNF(ClauselInfo info);
+FormulaInfo transformAMOtoDNF(FormulaInfo info);
 
-ClauselInfo getClauselInfoFromLine(char* line);
+FormulaInfo getClauselInfoFromLine(char* line);
 
 #endif //CODE_FILE_UTILS_H

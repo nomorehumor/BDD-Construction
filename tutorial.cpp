@@ -10,7 +10,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include "cudd.h"
-#include "output_utils.h"
+#include "utils/output_utils.h"
 
 int tutorial() {
 

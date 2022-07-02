@@ -8,13 +8,14 @@
 #include <stdlib.h>
 #include "cudd.h"
 #include <vector>
-#include "file_utils.h"
+#include <iostream>
+#include "utils/file_utils.h"
 #include "tutorial.h"
-#include "output_utils.h"
-#include "ProgressBar.h"
+#include "utils/output_utils.h"
+#include "progress_bar.h"
 
 
-DdNode* createFormulaFromInfo(DdManager *gbm, ClauselInfo info) {
+DdNode* createFormulaFromInfo(DdManager *gbm, FormulaInfo info) {
     DdNode *lastVariables, *tmpLastVariables, *tmpVar, *tmpVar2, *bdd;
     lastVariables = NULL;
     if (info.type == Form::DNF) {
@@ -27,8 +28,8 @@ DdNode* createFormulaFromInfo(DdManager *gbm, ClauselInfo info) {
         Cudd_Ref(lastVariables);
     }
 
-    for (int i = 0; i < info.terms.size(); i++) {
-        if (info.terms.at(i) == 0 && info.terms.at(i-1) != 0) {
+    for (int i = 0; i < info.symbols.size(); i++) {
+        if (info.symbols.at(i) == 0 && info.symbols.at(i - 1) != 0) {
             if (info.type == Form::DNF) {
                 tmpVar = Cudd_bddOr(gbm, lastVariables, bdd);
                 Cudd_RecursiveDeref(gbm,lastVariables);
@@ -43,9 +44,9 @@ DdNode* createFormulaFromInfo(DdManager *gbm, ClauselInfo info) {
             Cudd_Ref(tmpVar);
             Cudd_RecursiveDeref(gbm,bdd);
             bdd = tmpVar;
-        } else if (info.terms.at(i) != 0){
-            tmpVar = Cudd_bddIthVar(gbm, std::abs(info.terms.at(i)));
-            if (info.terms.at(i) < 0) {
+        } else if (info.symbols.at(i) != 0){
+            tmpVar = Cudd_bddIthVar(gbm, std::abs(info.symbols.at(i)));
+            if (info.symbols.at(i) < 0) {
                 tmpVar = Cudd_Not(tmpVar);
             }
             if (info.type == Form::DNF) {
@@ -57,9 +58,6 @@ DdNode* createFormulaFromInfo(DdManager *gbm, ClauselInfo info) {
             Cudd_RecursiveDeref(gbm, lastVariables);
             lastVariables = tmpLastVariables;
 
-//            char filename[30];
-//            sprintf(filename, "formula.dot");
-//            write_dd(gbm, lastVariables, filename);
         }
     }
 
@@ -79,7 +77,7 @@ std::vector<DdNode*> createVariables(DdManager *gbm, int variablesAmount) {
     return vars;
 }
 
-DdNode* createRulesetFromFile(DdManager *gbm, ClauselSetInfo setInfo, FILE* file) {
+DdNode* createRulesetFromFile(DdManager *gbm, FormulaSetInfo setInfo, FILE* file) {
     if (file == NULL) {
         exit(EXIT_FAILURE);
     }
@@ -97,9 +95,9 @@ DdNode* createRulesetFromFile(DdManager *gbm, ClauselSetInfo setInfo, FILE* file
 
     size_t read;
     int i = 0;
-    ProgressBar bar(setInfo.clauselAmount);
+    progress_bar bar(setInfo.clauselAmount);
     while (read = getline(&line, &length, file) != -1) {
-        ClauselInfo clauselInfo = getClauselInfoFromLine(line);
+        FormulaInfo clauselInfo = getClauselInfoFromLine(line);
         DdNode* formula = createFormulaFromInfo(gbm, clauselInfo);
 
 //        char filename[30];
@@ -129,16 +127,23 @@ DdNode* createRulesetFromFile(DdManager *gbm, ClauselSetInfo setInfo, FILE* file
 // This program creates a single BDD variable
 int main (int argc, char *argv[])
 {
-    char* filename = "C:\\dev\\Bachelor\\merlin-formulas\\wingas\\merlin-clauseset420509740828757424.txt";
-//    char* filename = "C:\\dev\\Bachelor\\test-formulas\\test1.txt";
+//    char* filename = "C:\\dev\\Bachelor\\merlin-formulas\\wingas\\merlin-clauseset420509740828757424.txt";
+    char* filename = "C:\\dev\\Bachelor\\test-formulas\\test1.txt";
     FILE* file = fopen(filename, "r");
-    ClauselSetInfo info = readClauselSetInfo(file);
+    FormulaSetInfo info = readClauselSetInfo(file);
 
     DdManager *gbm; /* Global BDD manager. */
     gbm = Cudd_Init(0,0,CUDD_UNIQUE_SLOTS,CUDD_CACHE_SLOTS,0); /* Initialize a new BDD manager. */
     Cudd_AutodynEnable(gbm, CUDD_REORDER_SIFT);
 
     DdNode* bdd = createRulesetFromFile(gbm, info, file);
+    print_dd(gbm, bdd, 4, 4);
+    Cudd_RecursiveDeref(gbm, bdd);
+
+
+    int num_reference_nodes = Cudd_CheckZeroRef(gbm);
+    std::cout << "#Nodes with non-zero reference count (should be 0): " << num_reference_nodes;
+
 
 //    char out_filename[30];
 //    sprintf(out_filename, "bdd.dot");

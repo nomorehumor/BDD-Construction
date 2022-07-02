@@ -2,12 +2,12 @@
 // Created by Maxim.Popov on 25.06.2022.
 //
 
-#include "ProgressBar.h"
+#include "progress_bar.h"
 #include <iostream>
 
-ProgressBar::ProgressBar(int totalItems): totalItems(totalItems) {}
+progress_bar::progress_bar(int totalItems): totalItems(totalItems) {}
 
-void ProgressBar::update(int itemsDone) {
+void progress_bar::update(int itemsDone) {
     int barWidth = 70;
     int progress = itemsDone / this->totalItems;
 

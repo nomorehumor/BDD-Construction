@@ -8,7 +8,7 @@
 #include "file_utils.h"
 
 
-ClauselSetInfo readClauselSetInfo(FILE* file) {
+FormulaSetInfo readClauselSetInfo(FILE* file) {
     if (file == NULL) {
         exit(EXIT_FAILURE);
     }
@@ -33,7 +33,7 @@ ClauselSetInfo readClauselSetInfo(FILE* file) {
         }
     }
     std::cout << clauselAmount + " " + varAmount << std::endl;
-    ClauselSetInfo info;
+    FormulaSetInfo info;
 
     if (formulaType == "cnf") {
         info.type = Form::CNF;
@@ -49,12 +49,12 @@ ClauselSetInfo readClauselSetInfo(FILE* file) {
     return info;
 }
 
-ClauselInfo transformAMOtoDNF(ClauselInfo info) {
-    ClauselInfo transformedInfo;
+FormulaInfo transformAMOtoDNF(FormulaInfo info) {
+    FormulaInfo transformedInfo;
     std::vector<int> formula;
-    for (int i = 0; i < info.terms.size(); i++) {
+    for (int i = 0; i < info.symbols.size(); i++) {
         formula.push_back(i);
-        for (int j = 0; j < info.terms.size(); j++) {
+        for (int j = 0; j < info.symbols.size(); j++) {
             if (i != j) {
                 formula.push_back(-j);
             }
@@ -66,15 +66,15 @@ ClauselInfo transformAMOtoDNF(ClauselInfo info) {
     return transformedInfo;
 }
 
-ClauselInfo getClauselInfoFromLine(char* line) {
-    ClauselInfo info;
+FormulaInfo getClauselInfoFromLine(char* line) {
+    FormulaInfo info;
     std::string type = "";
     std::string temp_term = "";
     int whitespaceCount = 0;
     int lineLength = strlen(line);
     for (int i = 0; i < lineLength; i++) {
         if ((line[i] == ' ' || line[i] == '\\n') && whitespaceCount > 0) {
-            info.terms.push_back(std::stoi(temp_term));
+            info.symbols.push_back(std::stoi(temp_term));
             temp_term = "";
         }
 
@@ -103,7 +103,7 @@ ClauselInfo getClauselInfoFromLine(char* line) {
         exit(EXIT_FAILURE);
     }
 
-    info.terms.push_back(std::stoi(temp_term));
+    info.symbols.push_back(std::stoi(temp_term));
 
     return info;
 }
