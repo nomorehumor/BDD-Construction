@@ -6,9 +6,13 @@
 #include <cstring>
 #include <cudd.h>
 #include "file_utils.h"
+#include <cstdio>
 
 
-FormulaSetInfo readClauselSetInfo(FILE* file) {
+
+FormulaSetInfo readClauselSetInfo(char filename[]) {
+    FILE* file = fopen(filename, "r");
+
     if (file == NULL) {
         exit(EXIT_FAILURE);
     }
@@ -46,41 +50,53 @@ FormulaSetInfo readClauselSetInfo(FILE* file) {
 
     info.clauselAmount = std::stoi(clauselAmount);
     info.variableAmount = std::stoi(varAmount);
+
+
+    for (int i = 0; i < info.clauselAmount; i++) {
+        getline(&line, &length, file);
+        FormulaInfo formulaInfo = getFormulaInfoFromLine(line);
+        info.formulas.push_back(formulaInfo);
+    }
+
+    fclose(file);
     return info;
 }
 
 FormulaInfo transformAMOtoDNF(FormulaInfo info) {
     FormulaInfo transformedInfo;
     std::vector<int> formula;
-    for (int i = 0; i < info.symbols.size(); i++) {
-        formula.push_back(i);
-        for (int j = 0; j < info.symbols.size(); j++) {
+    for (int i = 0; i < info.symbols.size() - 1; i++) {
+//        if (info.symbols.at(i) == 0) continue; Zero is always the last symbol
+
+        formula.push_back(info.symbols.at(i));
+        for (int j = 0; j < info.symbols.size() - 1; j++) {
             if (i != j) {
-                formula.push_back(-j);
+                formula.push_back(-info.symbols.at(j));
             }
         }
         formula.push_back(0);
     }
     formula.push_back(0);
+    transformedInfo.symbols = formula;
     transformedInfo.type = Form::DNF;
     return transformedInfo;
 }
 
-FormulaInfo getClauselInfoFromLine(char* line) {
+FormulaInfo getFormulaInfoFromLine(char* line) {
     FormulaInfo info;
     std::string type = "";
     std::string temp_term = "";
     int whitespaceCount = 0;
     int lineLength = strlen(line);
     for (int i = 0; i < lineLength; i++) {
-        if ((line[i] == ' ' || line[i] == '\\n') && whitespaceCount > 0) {
+        if ((line[i] == ' ' && whitespaceCount > 0) || line[i] == '\\n') {
             info.symbols.push_back(std::stoi(temp_term));
             temp_term = "";
         }
 
         if ((std::isdigit(line[i]) || line[i] == '-') && whitespaceCount == 0) {
             whitespaceCount = 1;
-            type = 'CNF';
+            type = "CNF";
         }
 
         if (line[i] == ' ') {
@@ -92,6 +108,8 @@ FormulaInfo getClauselInfoFromLine(char* line) {
         }
     }
 
+    info.symbols.push_back(std::stoi(temp_term));
+
     if (type == "DNF") {
         info.type = Form::DNF;
     } else if (type == "CNF") {
@@ -99,11 +117,8 @@ FormulaInfo getClauselInfoFromLine(char* line) {
     } else if (type == "AMO") {
         info = transformAMOtoDNF(info);
     } else {
-        std::cout << "Unknown set form (nor DNF or CNF)" << std::endl;
+        std::cout << "Unknown formula form (nor DNF or CNF): " << type << " on line: " << line << std::endl;
         exit(EXIT_FAILURE);
     }
-
-    info.symbols.push_back(std::stoi(temp_term));
-
     return info;
 }

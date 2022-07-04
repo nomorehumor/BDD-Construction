@@ -10,7 +10,7 @@
 #include "cudd.h"
 
 
-void print_dd (DdManager *gbm, DdNode *dd, int n, int pr );
+void print_dd (DdManager *gbm, DdNode *dd, int n = 4, int pr = 4);
 void write_dd (DdManager *gbm, DdNode *dd, char* filename);
 
 #endif //CODE_OUTPUT_UTILS_H

@@ -6,9 +6,9 @@
 #define CODE_PROGRESS_BAR_H
 
 
-class progress_bar {
+class ProgressBar {
 public:
-    progress_bar(int totalItems);
+    ProgressBar(int totalItems);
     void update(int itemsDone);
 private:
     int totalItems;

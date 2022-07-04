@@ -5,11 +5,11 @@
 #include "progress_bar.h"
 #include <iostream>
 
-progress_bar::progress_bar(int totalItems): totalItems(totalItems) {}
+ProgressBar::ProgressBar(int totalItems): totalItems(totalItems) {}
 
-void progress_bar::update(int itemsDone) {
+void ProgressBar::update(int itemsDone) {
     int barWidth = 70;
-    int progress = itemsDone / this->totalItems;
+    double progress = ((double) itemsDone) / this->totalItems;
 
     std::cout << "[";
     int pos = barWidth * progress;
