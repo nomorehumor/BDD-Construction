@@ -124,7 +124,6 @@ int main (int argc, char *argv[])
 //    sprintf(out_filename, "bdd.dot");
 //    bdd = Cudd_BddToAdd(gbm, bdd);
 //    write_dd(gbm, bdd, out_filename);
-
     Cudd_RecursiveDeref(gbm, bdd);
 
     int num_reference_nodes = Cudd_CheckZeroRef(gbm);

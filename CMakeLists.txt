@@ -1,10 +1,12 @@
 cmake_minimum_required(VERSION 3.22)
 project(code)
 
-set(CMAKE_CXX_STANDARD 11)
 set(CUDD_DIR ${CMAKE_SOURCE_DIR}/libs/cudd-3.0.0)
-include_directories(${CUDD_DIR})
-add_executable(main main.cpp utils/file_utils.cpp utils/file_utils.h tutorial.cpp tutorial.h utils/output_utils.cpp utils/output_utils.h progress_bar.cpp progress_bar.h)
+
+include_directories(src)
+
+add_subdirectory(src)
+add_subdirectory(tests)
 
 add_library(libcudd STATIC IMPORTED)
 set_target_properties(libcudd PROPERTIES IMPORTED_LOCATION ${CUDD_DIR}/cudd/.libs/libcudd.a)
