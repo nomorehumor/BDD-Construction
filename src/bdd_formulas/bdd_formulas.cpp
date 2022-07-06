@@ -2,9 +2,8 @@
 // Created by Maxim.Popov on 04.07.2022.
 //
 
-#include "cudd.h"
-#include "utils/file_utils.h"
-#include "progress_bar.h"
+#include "bdd_formulas.h"
+#include "utils/progress_bar.h"
 
 DdNode* createFormulaFromInfo(DdManager *gbm, FormulaInfo info) {
     DdNode *lastVariables, *tmpLastVariables, *tmpVar, *bdd;
@@ -56,7 +55,7 @@ DdNode* createFormulaFromInfo(DdManager *gbm, FormulaInfo info) {
     return bdd;
 }
 
-DdNode* createRuleset(DdManager *gbm, FormulaSetInfo setInfo) {
+DdNode* createRuleset(DdManager *gbm, FormulaSetInfo setInfo, bool progress_output) {
     DdNode *tmp, *bdd;
     if (setInfo.type == Form::CNF) {
         bdd = Cudd_ReadOne(gbm);
@@ -80,7 +79,9 @@ DdNode* createRuleset(DdManager *gbm, FormulaSetInfo setInfo) {
         bdd = tmp;
 
         i++;
-        bar.update(i );
+        if (progress_output) {
+            bar.update(i );
+        }
     }
 
     return bdd;

@@ -3,8 +3,6 @@ project(code)
 
 set(CUDD_DIR ${CMAKE_SOURCE_DIR}/libs/cudd-3.0.0)
 
-include_directories(src)
-
 add_subdirectory(src)
 add_subdirectory(tests)
 

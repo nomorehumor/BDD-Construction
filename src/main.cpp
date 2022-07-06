@@ -4,10 +4,8 @@
 * AUTHOR: David Kebo Houngninou
 */
 
-#include "cudd.h"
 #include <iostream>
-#include "utils/file_utils.h"
-#include "formulas.h"
+#include "bdd_formulas/bdd_formulas.h"
 
 
 // This program creates a single BDD variable

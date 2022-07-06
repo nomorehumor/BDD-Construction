@@ -5,8 +5,7 @@
 
 #include "gtest/gtest.h"
 #include "utils/file_utils.h"
-#include "cudd.h"
-#include "formulas.h"
+#include "bdd_formulas/bdd_formulas.h"
 
 TEST(FormulaTestSuite, CreateDNFFormula) {
     FormulaInfo info;
