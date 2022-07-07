@@ -3,7 +3,45 @@
 //
 
 #include "bdd_formulas.h"
-#include "utils/progress_bar.h"
+#include "../utils/progress_bar.h"
+#include "../utils/output_utils.h"
+
+
+std::vector<std::vector<bool>> getMinterms(DdManager* gbm, DdNode* bdd, int numVars, int maxAmount) {
+    DdNode **vars = new DdNode*[numVars]();
+    std::vector<std::vector<bool>> minterms;
+
+    for (int i = 0; i < numVars; i++) {
+        vars[i] = Cudd_bddIthVar(gbm, i);
+    }
+
+    DdNode *currentNode, *temp;
+    currentNode = bdd;
+    Cudd_Ref(currentNode);
+    while (currentNode != Cudd_ReadLogicZero(gbm) && minterms.size() < maxAmount) {
+        DdNode* minterm = Cudd_bddPickOneMinterm(gbm, currentNode, vars, numVars);
+
+
+        print_dd(gbm, minterm);
+
+        Cudd_Ref(minterm);
+        std::vector<bool> mintermSolution;
+        for (int i = 0; i < numVars; i++) {
+            mintermSolution.push_back(Cudd_bddLeq(gbm, minterm, vars[i]));
+        }
+        minterms.push_back(mintermSolution);
+
+        temp = Cudd_bddAnd(gbm, currentNode, Cudd_Not(minterm));
+        Cudd_Ref(temp);
+        Cudd_RecursiveDeref(gbm, currentNode);
+        Cudd_RecursiveDeref(gbm, minterm);
+        currentNode = temp;
+    }
+
+    Cudd_RecursiveDeref(gbm, currentNode);
+    delete[] vars;
+    return minterms;
+}
 
 DdNode* createFormulaFromInfo(DdManager *gbm, FormulaInfo info) {
     DdNode *lastVariables, *tmpLastVariables, *tmpVar, *bdd;

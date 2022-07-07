@@ -11,15 +11,15 @@
 // This program creates a single BDD variable
 int main (int argc, char *argv[])
 {
-//    char* filename = "C:\\dev\\Bachelor\\merlin-formulas\\wingas\\merlin-clauseset420509740828757424.txt";
-    char* filename = "C:\\dev\\Bachelor\\test-formulas\\test3.txt";
+    char* filename = "C:\\dev\\Bachelor\\merlin-formulas\\wingas\\merlin-clauseset420509740828757424.txt";
+//    char* filename = "C:\\dev\\Bachelor\\test-formulas\\test3.txt";
     FormulaSetInfo info = readClauselSetInfo(filename);
 
     DdManager *gbm; /* Global BDD manager. */
     gbm = Cudd_Init(info.variableAmount,0,CUDD_UNIQUE_SLOTS,CUDD_CACHE_SLOTS,0); /* Initialize a new BDD manager. */
     Cudd_AutodynEnable(gbm, CUDD_REORDER_SIFT);
 
-    DdNode* bdd = createRuleset(gbm, info);
+    DdNode* bdd = createRuleset(gbm, info, true);
 //    print_dd(gbm, bdd);
 
 //    char out_filename[30];
