@@ -27,6 +27,52 @@ std::vector<int> convertBooleanMintermsToBinary(std::vector<std::vector<bool>> m
     return binaryMinterms;
 }
 
+std::vector<int> convertMaxtermsToMinterms(std::vector<int> maxterms, int varAmount) {
+    std::vector<int> minterms;
+    for (int i = 0; i < std::pow(2, varAmount); i++) {
+        if (std::find(maxterms.begin(), maxterms.end(), i) == maxterms.end()) {
+            minterms.push_back(i);
+        }
+    }
+    return minterms;
+}
+
+TestFormula createRandomCNFFormula(int varAmount) {
+    FormulaInfo formulaInfo;
+    formulaInfo.type = Form::CNF;
+
+    std::random_device dev;
+    std::mt19937 rng(dev());
+    std::uniform_int_distribution<std::mt19937::result_type> clauselAmountDist(1, varAmount / 2);
+    std::uniform_int_distribution<std::mt19937::result_type> varSignDist(0,1);
+
+    std::vector<int> maxterms;
+    int clauselAmount = clauselAmountDist(rng);
+
+    std::cout << "Generating random formula, clausel amount: " << clauselAmount << std::endl;
+    for (int i = 0; i < clauselAmount; i++) {
+
+        std::vector<int> clausel;
+        int binaryMaxterm = 0;
+        for (int i = 1; i <= varAmount; i++) {
+            int signedVariable = varSignDist(rng) ? i : -i;
+            clausel.push_back(signedVariable);
+
+            binaryMaxterm = signedVariable < 0 ? binaryMaxterm | (1 << (i - 1)) : binaryMaxterm;
+        }
+        maxterms.push_back(binaryMaxterm);
+        clausel.push_back(0);
+
+        formulaInfo.symbols.insert(formulaInfo.symbols.end(), clausel.begin(), clausel.end());
+    }
+    formulaInfo.symbols.push_back(0);
+
+    TestFormula testFormula;
+    testFormula.formula = formulaInfo;
+    testFormula.solutions = convertMaxtermsToMinterms(maxterms, varAmount);
+    return testFormula;
+}
+
 TestFormula createRandomDNFFormula(int varAmount) {
     FormulaInfo formulaInfo;
     formulaInfo.type = Form::DNF;
@@ -57,11 +103,7 @@ TestFormula createRandomDNFFormula(int varAmount) {
     }
     formulaInfo.symbols.push_back(0);
 
-    std::cout << "Solving formula with symbols: ";
-    for (int symbol : formulaInfo.symbols) {
-        std::cout << symbol << " ";
-    }
-    std::cout << std::endl ;
+
 
     TestFormula testFormula;
     testFormula.formula = formulaInfo;
@@ -106,7 +148,32 @@ TEST(FormulaTestSuite, CreateRandomDNFFormula) {
 
     TestFormula testFormula = createRandomDNFFormula(varAmount);
 
+    std::cout << "Solving DNF formula with symbols: ";
+    for (int symbol : testFormula.formula.symbols) {
+        std::cout << symbol << " ";
+    }
+    std::cout << std::endl ;
+
     DdNode* bdd = createFormulaFromInfo(gbm, testFormula.formula);
-    std::vector<std::vector<bool>> minterms = getMinterms(gbm, bdd, varAmount, 8);
-    EXPECT_EQ(minterms.size(), testFormula.solutions.size());
+    std::vector<std::vector<bool>> minterms = getMinterms(gbm, bdd, varAmount, std::pow(2, varAmount));
+    std::vector<int> binaryMinterms = convertBooleanMintermsToBinary(minterms);
+    EXPECT_TRUE(std::is_permutation(binaryMinterms.begin(), binaryMinterms.end(), testFormula.solutions.begin()));
+}
+
+TEST(FormulaTestSuite, CreateRandomCNFFormula) {
+    int varAmount = 4;
+    DdManager *gbm = Cudd_Init(varAmount, 0, CUDD_UNIQUE_SLOTS, CUDD_CACHE_SLOTS, 0); /* Initialize a new BDD manager. */
+
+    TestFormula testFormula = createRandomCNFFormula(varAmount);
+
+    std::cout << "Solving CNF formula with symbols: ";
+    for (int symbol : testFormula.formula.symbols) {
+        std::cout << symbol << " ";
+    }
+    std::cout << std::endl ;
+
+    DdNode* bdd = createFormulaFromInfo(gbm, testFormula.formula);
+    std::vector<std::vector<bool>> minterms = getMinterms(gbm, bdd, varAmount, std::pow(2, varAmount));
+    std::vector<int> binaryMinterms = convertBooleanMintermsToBinary(minterms);
+    EXPECT_TRUE(std::is_permutation(binaryMinterms.begin(), binaryMinterms.end(), testFormula.solutions.begin()));
 }

@@ -7,7 +7,7 @@
 #include "../utils/output_utils.h"
 
 
-std::vector<std::vector<bool>> getMinterms(DdManager* gbm, DdNode* bdd, int numVars, int maxAmount) {
+std::vector<std::vector<bool>> getMinterms(DdManager* gbm, DdNode* bdd, int numVars, int maxAmount, bool output) {
     DdNode **vars = new DdNode*[numVars]();
     std::vector<std::vector<bool>> minterms;
 
@@ -21,8 +21,9 @@ std::vector<std::vector<bool>> getMinterms(DdManager* gbm, DdNode* bdd, int numV
     while (currentNode != Cudd_ReadLogicZero(gbm) && minterms.size() < maxAmount) {
         DdNode* minterm = Cudd_bddPickOneMinterm(gbm, currentNode, vars, numVars);
 
-
-        print_dd(gbm, minterm);
+        if (output) {
+            print_dd(gbm, minterm);
+        }
 
         Cudd_Ref(minterm);
         std::vector<bool> mintermSolution;
