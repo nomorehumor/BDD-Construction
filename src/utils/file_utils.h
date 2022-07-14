@@ -15,11 +15,12 @@ enum Form {
 };
 
 struct FormulaInfo {
+    int id;
     Form type;
     std::vector<int> symbols;
 };
 
-struct FormulaSetInfo{
+struct RulesetInfo{
     Form type;
     int clauselAmount;
     int variableAmount;
@@ -27,10 +28,10 @@ struct FormulaSetInfo{
 };
 
 
-FormulaSetInfo readClauselSetInfo(char filename[]);
+RulesetInfo readClauselSetInfo(char filename[], bool convertAmo = false);
 
 FormulaInfo transformAMOtoDNF(FormulaInfo info);
 
-FormulaInfo getFormulaInfoFromLine(char* line);
+FormulaInfo getFormulaInfoFromLine(char* line, bool convertAmo = false);
 
 #endif //CODE_FILE_UTILS_H

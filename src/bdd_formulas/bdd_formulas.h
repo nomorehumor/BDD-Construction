@@ -10,8 +10,8 @@
 #include <vector>
 #include "../utils/file_utils.h"
 
-DdNode* createFormulaFromInfo(DdManager *gbm, FormulaInfo info);
-DdNode* createRuleset(DdManager *gbm, FormulaSetInfo setInfo, bool progress_output = false);
 std::vector<std::vector<bool>> getMinterms(DdManager* gbm, DdNode* bdd, int numVars, int maxAmount, bool output = false);
+DdNode* createNFFormulaFromInfo(DdManager *gbm, FormulaInfo info);
+DdNode* createRuleset(DdManager *gbm, RulesetInfo setInfo, bool progress_output = false);
 
 #endif //CODE_BDD_FORMULAS_H

@@ -7,7 +7,7 @@
 
 ProgressBar::ProgressBar(int totalItems): totalItems(totalItems) {}
 
-void ProgressBar::update(int itemsDone) {
+void ProgressBar::update(int itemsDone, int nodeCount) {
     int barWidth = 70;
     double progress = ((double) itemsDone) / this->totalItems;
 
@@ -18,7 +18,7 @@ void ProgressBar::update(int itemsDone) {
         else if (i == pos) std::cout << ">";
         else std::cout << " ";
     }
-    std::cout << "] " << int(progress * 100.0) << " % [" << itemsDone << "/" << totalItems << "]\r";
+    std::cout << "] " << int(progress * 100.0) << " % [" << itemsDone << "/" << totalItems << "] Node count " << nodeCount << "\r";
     std::cout.flush();
 
 

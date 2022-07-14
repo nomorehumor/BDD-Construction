@@ -43,7 +43,7 @@ TestFormula createRandomCNFFormula(int varAmount) {
 
     std::random_device dev;
     std::mt19937 rng(dev());
-    std::uniform_int_distribution<std::mt19937::result_type> clauselAmountDist(1, varAmount / 2);
+    std::uniform_int_distribution<std::mt19937::result_type> clauselAmountDist(1, std::pow(2, varAmount - 1));
     std::uniform_int_distribution<std::mt19937::result_type> varSignDist(0,1);
 
     std::vector<int> maxterms;
@@ -118,7 +118,7 @@ TEST(FormulaTestSuite, CreateDNFFormula) {
 
     DdManager *gbm = Cudd_Init(formulaInfo.symbols.size(), 0, CUDD_UNIQUE_SLOTS, CUDD_CACHE_SLOTS, 0); /* Initialize a new BDD manager. */
 
-    DdNode* bdd = createFormulaFromInfo(gbm, formulaInfo);
+    DdNode* bdd = createNFFormulaFromInfo(gbm, formulaInfo);
 //    DdNode* replacement = Cudd_VerifySol(gbm, bdd, solution, yIndex, 3);
 
     std::vector<std::vector<bool>> minterms = getMinterms(gbm, bdd, 3, 10);
@@ -134,7 +134,7 @@ TEST(FormulaTestSuite, CreateCNFFormula) {
 
     DdManager *gbm = Cudd_Init(formulaInfo.symbols.size(), 0, CUDD_UNIQUE_SLOTS, CUDD_CACHE_SLOTS, 0); /* Initialize a new BDD manager. */
 
-    DdNode* bdd = createFormulaFromInfo(gbm, formulaInfo);
+    DdNode* bdd = createNFFormulaFromInfo(gbm, formulaInfo);
 
     std::vector<std::vector<bool>> minterms = getMinterms(gbm, bdd, 3, 8);
     std::vector<int> binaryMinterms = convertBooleanMintermsToBinary(minterms);
@@ -154,7 +154,7 @@ TEST(FormulaTestSuite, CreateRandomDNFFormula) {
     }
     std::cout << std::endl ;
 
-    DdNode* bdd = createFormulaFromInfo(gbm, testFormula.formula);
+    DdNode* bdd = createNFFormulaFromInfo(gbm, testFormula.formula);
     std::vector<std::vector<bool>> minterms = getMinterms(gbm, bdd, varAmount, std::pow(2, varAmount));
     std::vector<int> binaryMinterms = convertBooleanMintermsToBinary(minterms);
     EXPECT_TRUE(std::is_permutation(binaryMinterms.begin(), binaryMinterms.end(), testFormula.solutions.begin()));
@@ -172,7 +172,7 @@ TEST(FormulaTestSuite, CreateRandomCNFFormula) {
     }
     std::cout << std::endl ;
 
-    DdNode* bdd = createFormulaFromInfo(gbm, testFormula.formula);
+    DdNode* bdd = createNFFormulaFromInfo(gbm, testFormula.formula);
     std::vector<std::vector<bool>> minterms = getMinterms(gbm, bdd, varAmount, std::pow(2, varAmount));
     std::vector<int> binaryMinterms = convertBooleanMintermsToBinary(minterms);
     EXPECT_TRUE(std::is_permutation(binaryMinterms.begin(), binaryMinterms.end(), testFormula.solutions.begin()));

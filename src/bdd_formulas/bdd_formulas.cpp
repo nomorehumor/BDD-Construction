@@ -44,7 +44,56 @@ std::vector<std::vector<bool>> getMinterms(DdManager* gbm, DdNode* bdd, int numV
     return minterms;
 }
 
-DdNode* createFormulaFromInfo(DdManager *gbm, FormulaInfo info) {
+DdNode* createAMOFormulaFromInfo(DdManager *gbm, FormulaInfo amoInfo) {
+    DdNode *tmp, *tmpVar;
+    DdNode* bdd = Cudd_ReadLogicZero(gbm);
+    Cudd_Ref(bdd);
+    DdNode* notTerm = Cudd_ReadOne(gbm);
+    Cudd_Ref(notTerm);
+    DdNode* zeroTerm = Cudd_ReadLogicZero(gbm);
+    Cudd_Ref(zeroTerm);
+
+    for (int i = 0; i < amoInfo.symbols.size(); i++) {
+        if (amoInfo.symbols.at(i) == 0) continue;
+        tmpVar = Cudd_bddIthVar(gbm, std::abs(amoInfo.symbols.at(i)) - 1);
+        if (amoInfo.symbols.at(i) < 0) {
+            tmpVar = Cudd_Not(tmpVar);
+        }
+
+        tmp = Cudd_bddXor(gbm, tmpVar, bdd);
+        Cudd_Ref(tmp);
+        Cudd_RecursiveDeref(gbm, bdd);
+        bdd = tmp;
+
+        tmp = Cudd_bddAnd(gbm, tmpVar, notTerm);
+        Cudd_Ref(tmp);
+        Cudd_RecursiveDeref(gbm, notTerm);
+        notTerm = tmp;
+
+        tmp = Cudd_bddOr(gbm, tmpVar, zeroTerm);
+        Cudd_Ref(tmp);
+        Cudd_RecursiveDeref(gbm, zeroTerm);
+        zeroTerm = tmp;
+    }
+
+    notTerm = Cudd_Not(notTerm);
+    tmp = Cudd_bddAnd(gbm, bdd, notTerm);
+    Cudd_Ref(tmp);
+    Cudd_RecursiveDeref(gbm, bdd);
+    Cudd_RecursiveDeref(gbm, notTerm);
+    bdd = tmp;
+
+    zeroTerm = Cudd_Not(zeroTerm);
+    tmp = Cudd_bddOr(gbm, bdd, zeroTerm);
+    Cudd_Ref(tmp);
+    Cudd_RecursiveDeref(gbm, bdd);
+    Cudd_RecursiveDeref(gbm, zeroTerm);
+    bdd = tmp;
+
+    return bdd;
+}
+
+DdNode* createNFFormulaFromInfo(DdManager *gbm, FormulaInfo info) {
     DdNode *lastVariables, *tmpLastVariables, *tmpVar, *bdd;
     lastVariables = NULL;
     if (info.type == Form::DNF) {
@@ -94,7 +143,8 @@ DdNode* createFormulaFromInfo(DdManager *gbm, FormulaInfo info) {
     return bdd;
 }
 
-DdNode* createRuleset(DdManager *gbm, FormulaSetInfo setInfo, bool progress_output) {
+DdNode* createRuleset(DdManager *gbm, RulesetInfo setInfo, bool progress_output) {
+
     DdNode *tmp, *bdd;
     if (setInfo.type == Form::CNF) {
         bdd = Cudd_ReadOne(gbm);
@@ -105,7 +155,13 @@ DdNode* createRuleset(DdManager *gbm, FormulaSetInfo setInfo, bool progress_outp
 
     ProgressBar bar(setInfo.clauselAmount);
     for (int i = 0; i < setInfo.formulas.size(); i++) {
-        DdNode* formula = createFormulaFromInfo(gbm, setInfo.formulas.at(i));
+        DdNode* formula;
+
+        if (setInfo.formulas.at(i).type == Form::AMO) {
+            formula = createAMOFormulaFromInfo(gbm, setInfo.formulas.at(i));
+        } else {
+            formula = createNFFormulaFromInfo(gbm, setInfo.formulas.at(i));
+        }
 
         if (setInfo.type == Form::CNF) {
             tmp = Cudd_bddAnd(gbm, formula, bdd);
@@ -117,9 +173,8 @@ DdNode* createRuleset(DdManager *gbm, FormulaSetInfo setInfo, bool progress_outp
         Cudd_RecursiveDeref(gbm, bdd);
         bdd = tmp;
 
-        i++;
         if (progress_output) {
-            bar.update(i );
+            bar.update(i + 1, Cudd_ReadNodeCount(gbm));
         }
     }
 

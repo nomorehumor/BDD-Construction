@@ -10,7 +10,7 @@
 
 
 
-FormulaSetInfo readClauselSetInfo(char filename[]) {
+RulesetInfo readClauselSetInfo(char filename[], bool convertAmo) {
     FILE* file = fopen(filename, "r");
 
     if (file == NULL) {
@@ -37,7 +37,7 @@ FormulaSetInfo readClauselSetInfo(char filename[]) {
         }
     }
     std::cout << clauselAmount + " " + varAmount << std::endl;
-    FormulaSetInfo info;
+    RulesetInfo info;
 
     if (formulaType == "cnf") {
         info.type = Form::CNF;
@@ -51,10 +51,10 @@ FormulaSetInfo readClauselSetInfo(char filename[]) {
     info.clauselAmount = std::stoi(clauselAmount);
     info.variableAmount = std::stoi(varAmount);
 
-
     for (int i = 0; i < info.clauselAmount; i++) {
         getline(&line, &length, file);
-        FormulaInfo formulaInfo = getFormulaInfoFromLine(line);
+        FormulaInfo formulaInfo = getFormulaInfoFromLine(line, convertAmo);
+        formulaInfo.id = i;
         info.formulas.push_back(formulaInfo);
     }
 
@@ -65,10 +65,10 @@ FormulaSetInfo readClauselSetInfo(char filename[]) {
 FormulaInfo transformAMOtoDNF(FormulaInfo info) {
     FormulaInfo transformedInfo;
     std::vector<int> formula;
+    std::vector<int> zeroTerm;
     for (int i = 0; i < info.symbols.size() - 1; i++) {
-//        if (info.symbols.at(i) == 0) continue; Zero is always the last symbol
-
         formula.push_back(info.symbols.at(i));
+        zeroTerm.push_back(-info.symbols.at(i));
         for (int j = 0; j < info.symbols.size() - 1; j++) {
             if (i != j) {
                 formula.push_back(-info.symbols.at(j));
@@ -76,13 +76,15 @@ FormulaInfo transformAMOtoDNF(FormulaInfo info) {
         }
         formula.push_back(0);
     }
+    formula.insert(formula.end(), zeroTerm.begin(), zeroTerm.end());
+    formula.push_back(0);
     formula.push_back(0);
     transformedInfo.symbols = formula;
     transformedInfo.type = Form::DNF;
     return transformedInfo;
 }
 
-FormulaInfo getFormulaInfoFromLine(char* line) {
+FormulaInfo getFormulaInfoFromLine(char* line, bool convertAmo) {
     FormulaInfo info;
     std::string type = "";
     std::string temp_term = "";
@@ -115,7 +117,10 @@ FormulaInfo getFormulaInfoFromLine(char* line) {
     } else if (type == "CNF") {
         info.type = Form::CNF;
     } else if (type == "AMO") {
-        info = transformAMOtoDNF(info);
+        info.type = Form::AMO;
+        if (convertAmo) {
+            info = transformAMOtoDNF(info);
+        }
     } else {
         std::cout << "Unknown formula form (nor DNF or CNF): " << type << " on line: " << line << std::endl;
         exit(EXIT_FAILURE);

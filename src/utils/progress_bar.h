@@ -6,10 +6,12 @@
 #define CODE_PROGRESS_BAR_H
 
 
+#include <string>
+
 class ProgressBar {
 public:
     ProgressBar(int totalItems);
-    void update(int itemsDone);
+    void update(int itemsDone, int nodeCount);
 private:
     int totalItems;
 };
