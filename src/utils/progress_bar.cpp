@@ -3,24 +3,24 @@
 //
 
 #include "progress_bar.h"
+#include "spdlog/fmt/bundled/format.h"
+#include "spdlog/spdlog.h"
 #include <iostream>
 
 ProgressBar::ProgressBar(int totalItems): totalItems(totalItems) {}
 
 void ProgressBar::update(int itemsDone, int nodeCount) {
-    int barWidth = 70;
+    int barWidth = 50;
     double progress = ((double) itemsDone) / this->totalItems;
 
-    std::cout << "[";
+    std::string line = "";
+    line += "[";
     int pos = barWidth * progress;
     for (int i = 0; i < barWidth; ++i) {
-        if (i < pos) std::cout << "=";
-        else if (i == pos) std::cout << ">";
-        else std::cout << " ";
+        if (i < pos) line += "=";
+        else if (i == pos) line +=  ">";
+        else line += " ";
     }
-    std::cout << "] " << int(progress * 100.0) << " % [" << itemsDone << "/" << totalItems << "] Node count " << nodeCount << "\r";
-    std::cout.flush();
-
-
-    std::cout << std::endl;
+    line += fmt::format("] {}% [{}/{}] | Node count: {}",int(progress * 100.0), itemsDone, totalItems, nodeCount);
+    SPDLOG_INFO(line);
 }

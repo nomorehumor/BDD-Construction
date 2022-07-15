@@ -2,6 +2,7 @@
 // Created by Maxim.Popov on 11.07.2022.
 //
 #include "formula_ordering.h"
+#include "spdlog/spdlog.h"
 #include <algorithm>
 #include <random>
 #include <map>
@@ -13,9 +14,10 @@ void printVariableFrequencyStats(std::vector<int> orderedVariables, std::map<int
     for (auto varPair : variableFrequencies) {
         totalAppears += varPair.second;
     }
+    SPDLOG_INFO("Variable stats:");
     for (int i = 0; i < std::min(10, (int) orderedVariables.size()); i++) {
         double percentage = ((double) variableFrequencies[orderedVariables[i]]) / ((double) totalAppears);
-        std::cout << "Variable " << orderedVariables[i] << " | frequency: " << variableFrequencies[orderedVariables[i]] << " [" << percentage << "%]" << std::endl;
+        SPDLOG_INFO("{} | frequency {} : [{}%]", orderedVariables[i], variableFrequencies[orderedVariables[i]], percentage);
     }
 }
 

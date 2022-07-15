@@ -2,14 +2,16 @@
 // Created by Maxim.Popov on 23.06.2022.
 //
 #include "output_utils.h"
+#include "spdlog/spdlog.h"
 
 
 void print_dd (DdManager *gbm, DdNode *dd, int n, int pr )
 {
-    printf("DdManager nodes: %ld | ", Cudd_ReadNodeCount(gbm)); /*Reports the number of live nodes in BDDs and ADDs*/
-    printf("DdManager vars: %d | ", Cudd_ReadSize(gbm) ); /*Returns the number of BDD variables in existence*/
-    printf("DdManager reorderings: %d | ", Cudd_ReadReorderings(gbm) ); /*Returns the number of times reordering has occurred*/
-    printf("DdManager memory: %ld \n", Cudd_ReadMemoryInUse(gbm) ); /*Returns the memory in use by the manager measured in bytes*/
+    SPDLOG_INFO("DdManager nodes: {0:d} | DdManager vars: {0:d} | DdManager reorderings: {0:d} | DdManager memory: {0:d}",
+                Cudd_ReadNodeCount(gbm), /*Reports the number of live nodes in BDDs and ADDs*/
+                Cudd_ReadSize(gbm), /*Returns the number of BDD variables in existence*/
+                Cudd_ReadReorderings(gbm), /*Returns the number of times reordering has occurred*/
+                Cudd_ReadMemoryInUse(gbm)); /*Returns the memory in use by the manager measured in bytes*/
     Cudd_PrintDebug(gbm, dd, n, pr);  // Prints to the standard output a DD and its statistics: number of nodes, number of leaves, number of minterms.
 }
 
