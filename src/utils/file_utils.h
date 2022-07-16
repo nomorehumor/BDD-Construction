@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <cstdio>
+#include <string>
 
 enum Form {
     DNF,
@@ -28,7 +29,7 @@ struct RulesetInfo{
 };
 
 
-RulesetInfo readClauselSetInfo(char filename[], bool convertAmo = false);
+RulesetInfo readClauselSetInfo(std::string filename, bool convertAmo = false);
 
 FormulaInfo transformAMOtoDNF(FormulaInfo info);
 

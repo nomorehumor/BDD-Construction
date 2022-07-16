@@ -9,9 +9,10 @@
 #include <cstdio>
 
 
-
-RulesetInfo readClauselSetInfo(char filename[], bool convertAmo) {
-    FILE* file = fopen(filename, "r");
+RulesetInfo readClauselSetInfo(std::string filename, bool convertAmo) {
+    char filenameChar[filename.size()];
+    strcpy(filenameChar, filename.c_str());
+    FILE* file = fopen(filenameChar, "r");
 
     if (file == NULL) {
         exit(EXIT_FAILURE);

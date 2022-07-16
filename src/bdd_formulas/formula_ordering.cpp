@@ -7,6 +7,7 @@
 #include <random>
 #include <map>
 #include <iostream>
+#include "matplotlibcpp.h"
 
 
 void printVariableFrequencyStats(std::vector<int> orderedVariables, std::map<int,int> variableFrequencies) {
@@ -19,6 +20,25 @@ void printVariableFrequencyStats(std::vector<int> orderedVariables, std::map<int
         double percentage = ((double) variableFrequencies[orderedVariables[i]]) / ((double) totalAppears);
         SPDLOG_INFO("{} | frequency {} : [{}%]", orderedVariables[i], variableFrequencies[orderedVariables[i]], percentage);
     }
+}
+
+void plotVariableFrequencyStats(std::vector<int> orderedVariables, std::map<int, int> variableFrequencies) {
+    std::vector<int> frequencies;
+    std::vector<int> top20Frequencies;
+    for (int i = 0; i < orderedVariables.size(); i++) {
+        frequencies.push_back(variableFrequencies[orderedVariables[i]]);
+        if (i < 20) top20Frequencies.push_back(variableFrequencies[orderedVariables[i]]);
+    }
+    matplotlibcpp::plot(frequencies);
+    matplotlibcpp::ylabel("Frequency");
+    matplotlibcpp::xlabel("Position in ordered list");
+    matplotlibcpp::save("output/frequencies.png");
+    matplotlibcpp::clf();
+
+    matplotlibcpp::plot(top20Frequencies);
+    matplotlibcpp::ylabel("Frequency");
+    matplotlibcpp::xlabel("Position in ordered list");
+    matplotlibcpp::save("output/top_20_Frequencies.png");
 }
 
 RulesetInfo orderRulesetRandom(RulesetInfo& setInfo) {
@@ -67,14 +87,19 @@ RulesetInfo orderRulesetFrequentVariables(RulesetInfo& setInfo, bool skipFirst) 
     for (int i = 1; i <= setInfo.variableAmount; i++) {
         varsSorted.push_back(i);
     }
-    std::sort(varsSorted.begin(), varsSorted.end(), [&](int variable1, int variable2) { return variableFrequencyMap[variable1] > variableFrequencyMap[variable2];});
-    printVariableFrequencyStats(varsSorted, variableFrequencyMap);
-
-
     // Sort formulas
+    std::sort(varsSorted.begin(), varsSorted.end(), [&](int variable1, int variable2) { return variableFrequencyMap[variable1] > variableFrequencyMap[variable2];});
+
     if (skipFirst) {
         variableFrequencyMap[varsSorted[0]] = 0;
+        int firstVar = varsSorted[0];
+        varsSorted.erase(varsSorted.begin());
+        varsSorted.push_back(firstVar);
     }
+
+    printVariableFrequencyStats(varsSorted, variableFrequencyMap);
+    plotVariableFrequencyStats(varsSorted, variableFrequencyMap);
+
     std::vector<FormulaInfo> formulas = setInfo.formulas;
     std::sort(formulas.begin(), formulas.end(), [&] (FormulaInfo& a, FormulaInfo& b) {
         return variableFrequencyMap[formulaIdVarMap[a.id]] > variableFrequencyMap[formulaIdVarMap[b.id]];

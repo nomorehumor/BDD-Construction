@@ -1,8 +1,3 @@
-/*
-* FILENAME: transfer.c
-* Overview: BDD tutorial
-* AUTHOR: David Kebo Houngninou
-*/
 
 #include <iostream>
 #include <iomanip>
@@ -13,13 +8,14 @@
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/stdout_sinks.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
-
+#include "yaml-cpp/yaml.h"
+#include <filesystem>
 
 void setup_logger() {
     std::time_t now = time(nullptr);
     std::tm *ltm = std::localtime(&now);
     std::stringstream transTime;
-    transTime << std::put_time(ltm, "%y.%m.%M-%H.%M.%S");
+    transTime << std::put_time(ltm, "%y.%m.%d-%H.%M.%S");
     std::string log_name = fmt::format("logs/{}.log", transTime.str());
 
     std::vector<spdlog::sink_ptr> sinks;
@@ -29,19 +25,21 @@ void setup_logger() {
 
     combined_logger->flush_on(spdlog::level::info);
     spdlog::set_default_logger(combined_logger);
-    spdlog::set_pattern("[%H:%M:%S:%e] [%l] [%s:%#] %v");
+//    spdlog::set_pattern("[%H:%M:%S:%e] [%l] [%s:%#] %v");
+    spdlog::set_pattern("[%H:%M:%S:%e] [%l] %v");
 }
 
 // This program creates a single BDD variable
 int main (int argc, char *argv[])
 {
     setup_logger();
+    std::filesystem::create_directories("output");
 
-    char* filename = "C:\\dev\\Bachelor\\merlin-formulas\\wingas\\merlin-clauseset420509740828757424.txt";
-//    char* filename = "C:\\dev\\Bachelor\\test-formulas\\test_amo.txt";
+    YAML::Node config = YAML::LoadFile("config/config.yaml");
+    std::string filename = config["filename"].as<std::string>();
     RulesetInfo info = readClauselSetInfo(filename);
 
-    info = orderRulesetFrequentVariables(info, false);
+    info = orderRulesetFrequentVariables(info, true);
 
     DdManager *gbm; /* Global BDD manager. */
     gbm = Cudd_Init(info.variableAmount,0,CUDD_UNIQUE_SLOTS,CUDD_CACHE_SLOTS,0); /* Initialize a new BDD manager. */

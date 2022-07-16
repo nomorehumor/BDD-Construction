@@ -1,3 +1,9 @@
 [submodule "libs/spdlog"]
 	path = libs/spdlog
 	url = git@github.com:gabime/spdlog.git
+[submodule "libs/matplotlib-cpp"]
+	path = libs/matplotlib-cpp
+	url = git@github.com:lava/matplotlib-cpp.git
+[submodule "libs/yaml-cpp"]
+	path = libs/yaml-cpp
+	url = git@github.com:jbeder/yaml-cpp.git
