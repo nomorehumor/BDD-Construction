@@ -10,8 +10,8 @@
 
 class ProgressBar {
 public:
-    ProgressBar(int totalItems);
-    void update(int itemsDone, int nodeCount);
+    ProgressBar(int totalItems = 0);
+    void update(int itemsDone, int nodeCount, int stepTime_ms);
 private:
     int totalItems;
 };

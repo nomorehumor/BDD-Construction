@@ -5,7 +5,9 @@
 #include "bdd_formulas.h"
 #include "../utils/progress_bar.h"
 #include "../utils/output_utils.h"
-
+#include "matplotlibcpp.h"
+#include "../stats/BDDBuildStatistic.h"
+#include <chrono>
 
 std::vector<std::vector<bool>> getMinterms(DdManager* gbm, DdNode* bdd, int numVars, int maxAmount, bool output) {
     DdNode **vars = new DdNode*[numVars]();
@@ -153,8 +155,12 @@ DdNode* createRuleset(DdManager *gbm, RulesetInfo setInfo, bool progress_output)
     }
     Cudd_Ref(bdd);
 
-    ProgressBar bar(setInfo.clauselAmount);
+    std::chrono::steady_clock::time_point iteration_begin;
+    std::chrono::steady_clock::time_point iteration_end;
+    BDDBuildStatistic statistic(setInfo.clauselAmount, 10);
     for (int i = 0; i < setInfo.formulas.size(); i++) {
+        iteration_begin = std::chrono::steady_clock::now();
+
         DdNode* formula;
 
         if (setInfo.formulas.at(i).type == Form::AMO) {
@@ -173,8 +179,11 @@ DdNode* createRuleset(DdManager *gbm, RulesetInfo setInfo, bool progress_output)
         Cudd_RecursiveDeref(gbm, bdd);
         bdd = tmp;
 
+        iteration_end = std::chrono::steady_clock::now();
+
+        int stepTime_ms = std::chrono::duration_cast<std::chrono::milliseconds>(iteration_end - iteration_begin).count();
         if (progress_output) {
-            bar.update(i + 1, Cudd_ReadNodeCount(gbm));
+            statistic.logStep(i+1, Cudd_ReadNodeCount(gbm), stepTime_ms);
         }
     }
 

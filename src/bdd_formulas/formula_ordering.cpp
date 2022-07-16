@@ -39,6 +39,7 @@ void plotVariableFrequencyStats(std::vector<int> orderedVariables, std::map<int,
     matplotlibcpp::ylabel("Frequency");
     matplotlibcpp::xlabel("Position in ordered list");
     matplotlibcpp::save("output/top_20_Frequencies.png");
+    matplotlibcpp::clf();
 }
 
 RulesetInfo orderRulesetRandom(RulesetInfo& setInfo) {

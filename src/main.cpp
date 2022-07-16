@@ -29,7 +29,6 @@ void setup_logger() {
     spdlog::set_pattern("[%H:%M:%S:%e] [%l] %v");
 }
 
-// This program creates a single BDD variable
 int main (int argc, char *argv[])
 {
     setup_logger();
