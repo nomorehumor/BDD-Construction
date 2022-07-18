@@ -8,8 +8,9 @@
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/stdout_sinks.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
-#include "yaml-cpp/yaml.h"
+#include "utils/BDDConfiguration.h"
 #include <filesystem>
+#include "utils/file_utils.h"
 
 void setup_logger() {
     std::time_t now = time(nullptr);
@@ -29,29 +30,58 @@ void setup_logger() {
     spdlog::set_pattern("[%H:%M:%S:%e] [%l] %v");
 }
 
+void printRulesetStats(RulesetInfo& info) {
+    spdlog::info("======= Ruleset info =======");
+    spdlog::info("Variables amount: {0:d} | Formulas amount: {1:d}", info.variableAmount, info.clauselAmount);
+
+    int amoFormulasAmount = 0;
+    int dnfFormulasAmount = 0;
+    int cnfFormulasAmount = 0;
+    int unknownFormulaTypeAmount = 0;
+    for (FormulaInfo& info : info.formulas) {
+        switch(info.type) {
+            case Form::AMO:
+                amoFormulasAmount++;
+                break;
+            case Form::DNF:
+                dnfFormulasAmount++;
+                break;
+            case Form::CNF:
+                cnfFormulasAmount++;
+                break;
+            default:
+                unknownFormulaTypeAmount++;
+        }
+    }
+    spdlog::info("DNF: {0:d}", dnfFormulasAmount);
+    spdlog::info("CNF: {0:d}", cnfFormulasAmount);
+    spdlog::info("AMO: {0:d}", amoFormulasAmount);
+    spdlog::info("Unknown type: {0:d}", unknownFormulaTypeAmount);
+}
+
 int main (int argc, char *argv[])
 {
     setup_logger();
     std::filesystem::create_directories("output");
+    BDDConfiguration::getInstance()->load("config/config.yaml");
 
-    YAML::Node config = YAML::LoadFile("config/config.yaml");
-    std::string filename = config["filename"].as<std::string>();
-    RulesetInfo info = readClauselSetInfo(filename);
+    RulesetInfo info = readClauselSetInfo(BDDConfiguration::getInputFilename());
+    printRulesetStats(info);
 
-    info = orderRulesetFrequentVariables(info, true);
+    info = orderRulesetFrequentVariables(info, BDDConfiguration::getSkipMostFrequentVar());
 
     DdManager *gbm; /* Global BDD manager. */
     gbm = Cudd_Init(info.variableAmount,0,CUDD_UNIQUE_SLOTS,CUDD_CACHE_SLOTS,0); /* Initialize a new BDD manager. */
     Cudd_AutodynEnable(gbm, CUDD_REORDER_SIFT);
 
-    DdNode* bdd = createRuleset(gbm, info, true);
+    DdNode* bdd = createRuleset(gbm, info, BDDConfiguration::getPrintProgress());
     print_dd(gbm, bdd);
     SPDLOG_INFO("Minterm count: {0:f}", Cudd_CountMinterm(gbm, bdd, info.variableAmount));
 
-    char out_filename[30];
-    sprintf(out_filename, "bdd.dot");
+//    char out_filename[30];
+//    sprintf(out_filename, "bdd.dot");
 //    bdd = Cudd_BddToAdd(gbm, bdd);
-    write_dd(gbm, bdd, out_filename);
+//    write_dd(gbm, bdd, out_filename);
 
     Cudd_RecursiveDeref(gbm, bdd);
 

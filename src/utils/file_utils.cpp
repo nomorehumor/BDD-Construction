@@ -37,7 +37,6 @@ RulesetInfo readClauselSetInfo(std::string filename, bool convertAmo) {
             clauselAmount.append(1, line[i]);
         }
     }
-    std::cout << clauselAmount + " " + varAmount << std::endl;
     RulesetInfo info;
 
     if (formulaType == "cnf") {

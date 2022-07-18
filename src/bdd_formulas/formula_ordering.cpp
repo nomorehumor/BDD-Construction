@@ -15,7 +15,7 @@ void printVariableFrequencyStats(std::vector<int> orderedVariables, std::map<int
     for (auto varPair : variableFrequencies) {
         totalAppears += varPair.second;
     }
-    SPDLOG_INFO("Variable stats:");
+    SPDLOG_INFO("======= Variable stats =======");
     for (int i = 0; i < std::min(10, (int) orderedVariables.size()); i++) {
         double percentage = ((double) variableFrequencies[orderedVariables[i]]) / ((double) totalAppears);
         SPDLOG_INFO("{} | frequency {} : [{}%]", orderedVariables[i], variableFrequencies[orderedVariables[i]], percentage);
@@ -112,5 +112,5 @@ RulesetInfo orderRulesetFrequentVariables(RulesetInfo& setInfo, bool skipFirst) 
 }
 
 RulesetInfo orderRulesetSimilarVariables(RulesetInfo& setInfo) {
-
+    return setInfo;
 }
