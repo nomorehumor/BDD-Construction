@@ -14,6 +14,17 @@ BDDBuildStatistic::BDDBuildStatistic(int totalItems, int outputInterval) {
     this->progressBar = ProgressBar(totalItems);
 }
 
+void BDDBuildStatistic::logCudd(DdManager *gbm, int itemsDone) {
+    memorySize.push_back(Cudd_ReadMemoryInUse(gbm));
+
+    if (itemsDone % outputInterval == 0 && BDDConfiguration::getOutputPlots()) {
+        plt::plot(memorySize);
+        plt::title("Used memory (in bytes)");
+        plt::save("output/memory.png");
+        plt::clf();
+    }
+}
+
 void BDDBuildStatistic::logStep(const FormulaInfo& formula, int itemsDone, int nodeCount, int stepTime_ms) {
     progressBar.update(itemsDone, nodeCount, stepTime_ms);
 
@@ -28,6 +39,10 @@ void BDDBuildStatistic::logStep(const FormulaInfo& formula, int itemsDone, int n
     formNodeDelta[formula.type].push_back(delta);
 
     if (itemsDone % outputInterval == 0 && BDDConfiguration::getOutputPlots()) {
+
+        plt::figure_size(1200, 780);
+        plt::plot(stepTimes_ms);
+        plt::save("output/step_times.png");
         plt::clf();
 
         plt::stem(nodeCountDelta, stepTimes_ms);
@@ -38,19 +53,35 @@ void BDDBuildStatistic::logStep(const FormulaInfo& formula, int itemsDone, int n
         plt::save("output/nodecount_times.png");
         plt::clf();
 
-        plt::figure(1);
-        plt::stem(formNodeDelta[Form::AMO], formTimes[Form::AMO]);
-        plt::suptitle("AMO node count delta to step time");
-        plt::figure(2);
-        plt::stem(formNodeDelta[Form::CNF], formTimes[Form::CNF]);
-        plt::suptitle("CNF node count delta to step time");
-        plt::figure(3);
-        plt::stem(formNodeDelta[Form::DNF], formTimes[Form::DNF]);
-        plt::suptitle("DNF node count delta to step time");
+        plt::figure_size(2000, 780);
+        int subplotAmount = !formNodeDelta[Form::AMO].empty() + !formNodeDelta[Form::CNF].empty() + !formNodeDelta[Form::DNF].empty();
+        int currentSubplotAmount = 1;
+        if (!formNodeDelta[Form::AMO].empty()) {
+            plt::subplot(1, subplotAmount, currentSubplotAmount);
+            plt::stem(formNodeDelta[Form::AMO], formTimes[Form::AMO]);
+            plt::title("AMO");
+            currentSubplotAmount++;
+        }
 
-        plt::legend();
-        plt::save("output/nodecount_times_type_comparison.png");
+        if (!formNodeDelta[Form::CNF].empty()) {
+            plt::subplot(1, subplotAmount, currentSubplotAmount);
+            plt::stem(formNodeDelta[Form::CNF], formTimes[Form::CNF]);
+            plt::title("CNF");
+            currentSubplotAmount++;
+        }
+
+        if (!formNodeDelta[Form::DNF].empty()) {
+            plt::subplot(1, subplotAmount, currentSubplotAmount);
+            plt::stem(formNodeDelta[Form::DNF], formTimes[Form::DNF]);
+            plt::title("DNF");
+            currentSubplotAmount++;
+        }
+        if (currentSubplotAmount != 1) {
+            plt::legend();
+            plt::save("output/nodecountdelta_times_type_comparison.png");
+        }
         plt::clf();
+        plt::figure_size(1200, 780);
     }
 
 }

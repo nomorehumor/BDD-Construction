@@ -10,5 +10,6 @@
 RulesetInfo orderRulesetRandom(RulesetInfo& setInfo);
 RulesetInfo orderRulesetFormulaSize(RulesetInfo& setInfo, bool ascending);
 RulesetInfo orderRulesetFrequentVariables(RulesetInfo& setInfo, bool skipFirst);
+RulesetInfo orderRuleset(RulesetInfo& setInfo, std::string strategy);
 
 #endif //CODE_FORMULA_ORDERING_H

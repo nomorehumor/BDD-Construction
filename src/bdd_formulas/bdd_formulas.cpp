@@ -184,6 +184,7 @@ DdNode* createRuleset(DdManager *gbm, RulesetInfo setInfo, bool progress_output)
         int stepTime_ms = std::chrono::duration_cast<std::chrono::milliseconds>(iteration_end - iteration_begin).count();
         if (progress_output) {
             statistic.logStep(setInfo.formulas.at(i), i+1, Cudd_ReadNodeCount(gbm), stepTime_ms);
+            statistic.logCudd(gbm, i+1);
         }
     }
 

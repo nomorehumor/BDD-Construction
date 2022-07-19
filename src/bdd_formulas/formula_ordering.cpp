@@ -2,13 +2,15 @@
 // Created by Maxim.Popov on 11.07.2022.
 //
 #include "formula_ordering.h"
+#include "../utils/BDDConfiguration.h"
+#include "matplotlibcpp.h"
 #include "spdlog/spdlog.h"
 #include <algorithm>
-#include <random>
-#include <map>
 #include <iostream>
-#include "matplotlibcpp.h"
+#include <map>
+#include <random>
 
+namespace plt = matplotlibcpp;
 
 void printVariableFrequencyStats(std::vector<int> orderedVariables, std::map<int,int> variableFrequencies) {
     int totalAppears = 0;
@@ -23,23 +25,46 @@ void printVariableFrequencyStats(std::vector<int> orderedVariables, std::map<int
 }
 
 void plotVariableFrequencyStats(std::vector<int> orderedVariables, std::map<int, int> variableFrequencies) {
+    spdlog::info("Plotting variable frequency stats");
     std::vector<int> frequencies;
     std::vector<int> top20Frequencies;
     for (int i = 0; i < orderedVariables.size(); i++) {
         frequencies.push_back(variableFrequencies[orderedVariables[i]]);
         if (i < 20) top20Frequencies.push_back(variableFrequencies[orderedVariables[i]]);
     }
-    matplotlibcpp::plot(frequencies);
-    matplotlibcpp::ylabel("Frequency");
-    matplotlibcpp::xlabel("Position in ordered list");
-    matplotlibcpp::save("output/frequencies.png");
-    matplotlibcpp::clf();
 
-    matplotlibcpp::plot(top20Frequencies);
-    matplotlibcpp::ylabel("Frequency");
-    matplotlibcpp::xlabel("Position in ordered list");
-    matplotlibcpp::save("output/top_20_Frequencies.png");
-    matplotlibcpp::clf();
+    plt::figure_size(2500, 780);
+    plt::subplot(1, 2, 1);
+    plt::bar(frequencies);
+    plt::title("All variables");
+    plt::ylabel("Frequency");
+    plt::xlabel("Position in ordered list");
+
+    plt::subplot(1, 2, 2);
+    plt::bar(top20Frequencies);
+    plt::ylabel("Frequency");
+    plt::xlabel("Position in ordered list");
+    plt::title("Top 20 variables");
+    plt::legend();
+    plt::save("output/frequencies.png");
+    plt::clf();
+    plt::figure_size(1200, 780);
+}
+
+void plotFormulaPartition(std::map<int, int> formulaIdVarMap, int varAmount) {
+    spdlog::info("Plotting formula partition");
+    std::vector<int> varValues;
+    for (auto formulaIdVar : formulaIdVarMap) {
+        varValues.push_back(formulaIdVar.second);
+    }
+
+    plt::figure_size(2000, 780);
+    plt::hist(varValues, varAmount);
+    plt::ylim(0, 50);
+    plt::save("output/formula_partition.png");
+    plt::clf();
+
+    plt::figure_size(1200, 780);
 }
 
 RulesetInfo orderRulesetRandom(RulesetInfo& setInfo) {
@@ -61,7 +86,7 @@ RulesetInfo orderRulesetFormulaSize(RulesetInfo& setInfo, bool ascending) {
 RulesetInfo orderRulesetFrequentVariables(RulesetInfo& setInfo, bool skipFirst) {
     std::map<int, int> variableFrequencyMap;
     std::map<int, int> formulaIdVarMap;
-    std::map<int, std::vector<FormulaInfo>> formulaPartition;
+//    std::map<int, std::vector<FormulaInfo>> formulaPartition;
 
     // Collect variables statistics
     for (FormulaInfo& formulaInfo : setInfo.formulas) {
@@ -99,7 +124,10 @@ RulesetInfo orderRulesetFrequentVariables(RulesetInfo& setInfo, bool skipFirst) 
     }
 
     printVariableFrequencyStats(varsSorted, variableFrequencyMap);
-    plotVariableFrequencyStats(varsSorted, variableFrequencyMap);
+    if (BDDConfiguration::getOutputPlots()) {
+        plotVariableFrequencyStats(varsSorted, variableFrequencyMap);
+//        plotFormulaPartition(formulaIdVarMap, setInfo.variableAmount);
+    }
 
     std::vector<FormulaInfo> formulas = setInfo.formulas;
     std::sort(formulas.begin(), formulas.end(), [&] (FormulaInfo& a, FormulaInfo& b) {
@@ -113,4 +141,21 @@ RulesetInfo orderRulesetFrequentVariables(RulesetInfo& setInfo, bool skipFirst) 
 
 RulesetInfo orderRulesetSimilarVariables(RulesetInfo& setInfo) {
     return setInfo;
+}
+
+RulesetInfo orderRuleset(RulesetInfo& setInfo, std::string strategy) {
+    spdlog::info("Using '{}' static ordering strategy", strategy);
+
+    if (strategy == "none") {
+        return setInfo;
+    } else if (strategy == "size") {
+        return orderRulesetFormulaSize(setInfo, BDDConfiguration::getAscending());
+    } else if (strategy == "random") {
+        return orderRulesetRandom(setInfo);
+    } else if (strategy == "var_frequency") {
+        return orderRulesetFrequentVariables(setInfo, BDDConfiguration::getSkipMostFrequentVar());
+    } else {
+        spdlog::warn("Unkown strategy, using 'none' instead");
+        return setInfo;
+    }
 }

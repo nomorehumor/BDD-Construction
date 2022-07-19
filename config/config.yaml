@@ -5,4 +5,8 @@ output:
   output_plots: true
 
 ordering:
-  skip_most_frequent_var: true
+  strategy: "var_frequency" # none, random, size, var_frequency
+  skip_most_frequent_var: false # relevant only for 'var_frequency' strategy
+  ascending: true # relevant only for 'size' strategy
+
+  enable_dynamic_ordering: true

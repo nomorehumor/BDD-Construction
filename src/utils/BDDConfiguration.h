@@ -25,6 +25,9 @@ public:
         outputPlots = config["output"]["output_plots"].as<bool>();
         skipMostFrequentVar = config["ordering"]["skip_most_frequent_var"].as<bool>();
         printProgress = config["output"]["print_progress"].as<bool>();
+        enableDynamicOrdering = config["ordering"]["enable_dynamic_ordering"].as<bool>();
+        orderingStrategy = config["ordering"]["strategy"].as<std::string>();
+        ascending = config["ordering"]["ascending"].as<bool>();
     }
 
     static std::string getInputFilename() {
@@ -43,6 +46,18 @@ public:
         return skipMostFrequentVar;
     }
 
+    static bool getEnableDynamicOrdering() {
+        return enableDynamicOrdering;
+    }
+
+    static std::string getOrderingStrategy() {
+        return orderingStrategy;
+    }
+
+    static bool getAscending() {
+        return ascending;
+    }
+
     BDDConfiguration(BDDConfiguration const&) = delete;
     void operator=(BDDConfiguration const&) = delete;
 
@@ -52,6 +67,9 @@ protected:
     inline static bool outputPlots = true;
     inline static bool printProgress = true;
     inline static bool skipMostFrequentVar = true;
+    inline static bool enableDynamicOrdering = true;
+    inline static std::string orderingStrategy = "none";
+    inline static bool ascending = true;
 
     BDDConfiguration() {}
     inline static BDDConfiguration* configuration_ = nullptr;
