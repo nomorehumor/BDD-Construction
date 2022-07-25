@@ -2,7 +2,9 @@
 // Created by Maxim.Popov on 11.07.2022.
 //
 #include "formula_ordering.h"
-#include "../utils/BDDConfiguration.h"
+#include "../../utils/BDDConfiguration.h"
+#include "../../utils/progress_bar.h"
+#include "FORCEPlacer.h"
 #include "matplotlibcpp.h"
 #include "spdlog/spdlog.h"
 #include <algorithm>
@@ -45,7 +47,6 @@ void plotVariableFrequencyStats(std::vector<int> orderedVariables, std::map<int,
     plt::ylabel("Frequency");
     plt::xlabel("Position in ordered list");
     plt::title("Top 20 variables");
-    plt::legend();
     plt::save("output/frequencies.png");
     plt::clf();
     plt::figure_size(1200, 780);
@@ -83,15 +84,20 @@ RulesetInfo orderRulesetFormulaSize(RulesetInfo& setInfo, bool ascending) {
     return setInfo;
 }
 
-RulesetInfo orderRulesetFrequentVariables(RulesetInfo& setInfo, bool skipFirst) {
+RulesetInfo orderRulesetFrequentVariables(RulesetInfo& setInfo, bool countAllAppearances, bool skipFirst) {
     std::map<int, int> variableFrequencyMap;
     std::map<int, int> formulaIdVarMap;
 //    std::map<int, std::vector<FormulaInfo>> formulaPartition;
 
     // Collect variables statistics
     for (FormulaInfo& formulaInfo : setInfo.formulas) {
+        std::map<int, bool> varAppearance;
         for (int symbol : formulaInfo.symbols) {
             if (symbol != 0) {
+                if (!countAllAppearances) {
+                    if (varAppearance[symbol]) continue;
+                    else varAppearance[symbol] = true;
+                }
                 variableFrequencyMap[std::abs(symbol)]++;
             }
         }
@@ -124,7 +130,7 @@ RulesetInfo orderRulesetFrequentVariables(RulesetInfo& setInfo, bool skipFirst) 
     }
 
     printVariableFrequencyStats(varsSorted, variableFrequencyMap);
-    if (BDDConfiguration::getOutputPlots()) {
+    if (BDDConfiguration::isOutputPlots()) {
         plotVariableFrequencyStats(varsSorted, variableFrequencyMap);
 //        plotFormulaPartition(formulaIdVarMap, setInfo.variableAmount);
     }
@@ -139,23 +145,88 @@ RulesetInfo orderRulesetFrequentVariables(RulesetInfo& setInfo, bool skipFirst) 
     return newSetInfo;
 }
 
-RulesetInfo orderRulesetSimilarVariables(RulesetInfo& setInfo) {
+RulesetInfo orderRulesetFORCE(RulesetInfo setInfo) {
+    FORCEPlacer placer(setInfo.formulas);
+    setInfo.formulas = placer.orderFormulasWithPlacement(setInfo.formulas, placer.findPlacement(true));
     return setInfo;
 }
 
-RulesetInfo orderRuleset(RulesetInfo& setInfo, std::string strategy) {
-    spdlog::info("Using '{}' static ordering strategy", strategy);
+RulesetInfo orderClausesBottomUp(RulesetInfo& setInfo) {
+    RulesetInfo orderedRuleset = setInfo;
+    orderedRuleset.formulas = {};
 
-    if (strategy == "none") {
-        return setInfo;
-    } else if (strategy == "size") {
-        return orderRulesetFormulaSize(setInfo, BDDConfiguration::getAscending());
-    } else if (strategy == "random") {
-        return orderRulesetRandom(setInfo);
-    } else if (strategy == "var_frequency") {
-        return orderRulesetFrequentVariables(setInfo, BDDConfiguration::getSkipMostFrequentVar());
+    for (FormulaInfo formula : setInfo.formulas) {
+        std::vector<int> newSymbols;
+        auto firstInClause = formula.symbols.begin();
+        for (auto it = formula.symbols.begin() + 1; it < formula.symbols.end(); it++) {
+            if (*it == 0 && *firstInClause != 0) {
+                std::vector<int> clause(firstInClause, it);
+                std::sort(clause.begin(), clause.end(), [](int a, int b) { return std::abs(a) > std::abs(b); });
+                newSymbols.insert(newSymbols.end(), clause.begin(), clause.end());
+                newSymbols.push_back(0);
+                firstInClause = it + 1;
+            }
+        }
+
+        if (formula.type == Form::DNF) {
+            newSymbols.push_back(0);
+        }
+
+        FormulaInfo newFormula = formula;
+        newFormula.symbols = newSymbols;
+        orderedRuleset.formulas.push_back(newFormula);
+    }
+
+    return orderedRuleset;
+}
+
+RulesetInfo orderClausesFORCE(RulesetInfo setInfo) {
+    std::vector<FormulaInfo> formulas;
+
+    ProgressBar bar(setInfo.formulas.size());
+    int i = 1;
+    spdlog::info("Ordering clauses with FORCE");
+    for (FormulaInfo& formula : setInfo.formulas) {
+        bar.update(i);
+        if (formula.clauses.size() > 2) {
+            FORCEPlacer placer(formula);
+            formulas.push_back(placer.orderClausesWithPlacement(formula, placer.findPlacement()));
+        } else {
+            formulas.push_back(formula);
+        }
+
+        i++;
+    }
+    setInfo.formulas = formulas;
+    return setInfo;
+}
+
+RulesetInfo orderRuleset(RulesetInfo& setInfo, std::string setStrategy, std::string clauseStrategy) {
+    RulesetInfo inputSet = setInfo;
+
+    spdlog::info("Using '{}' clause ordering strategy", clauseStrategy);
+    if (clauseStrategy == "bottom_up") {
+        inputSet = orderClausesBottomUp(setInfo);
+    } else if (clauseStrategy == "force") {
+        inputSet = orderClausesFORCE(setInfo);
+    } else spdlog::info("Clause ordering is disabled");
+
+    spdlog::info("Using '{}' static ordering strategy", setStrategy);
+    if (setStrategy == "none") {
+        return inputSet;
+    } else if (setStrategy == "size") {
+        return orderRulesetFormulaSize(inputSet,
+                                       BDDConfiguration::isAscending());
+    } else if (setStrategy == "random") {
+        return orderRulesetRandom(inputSet);
+    } else if (setStrategy == "var_frequency") {
+        return orderRulesetFrequentVariables(
+            inputSet, BDDConfiguration::isCountAllAppearances(),
+            BDDConfiguration::isSkipMostFrequentVar());
+    } else if (setStrategy == "force") {
+        return orderRulesetFORCE(inputSet);
     } else {
-        spdlog::warn("Unkown strategy, using 'none' instead");
-        return setInfo;
+        spdlog::warn("Unknown strategy, using 'none' instead");
+        return inputSet;
     }
 }

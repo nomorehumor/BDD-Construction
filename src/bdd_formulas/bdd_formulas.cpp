@@ -9,6 +9,8 @@
 #include "../stats/BDDBuildStatistic.h"
 #include <chrono>
 
+namespace chrono = std::chrono;
+
 std::vector<std::vector<bool>> getMinterms(DdManager* gbm, DdNode* bdd, int numVars, int maxAmount, bool output) {
     DdNode **vars = new DdNode*[numVars]();
     std::vector<std::vector<bool>> minterms;
@@ -95,6 +97,72 @@ DdNode* createAMOFormulaFromInfo(DdManager *gbm, FormulaInfo amoInfo) {
     return bdd;
 }
 
+
+DdNode* createCNFClause(DdManager* gbm, std::vector<int> clauseVars) {
+    DdNode *clause = Cudd_ReadLogicZero(gbm);
+    DdNode *tmpVar, *tmpClause;
+
+    for (int var : clauseVars) {
+        tmpVar = Cudd_bddIthVar(gbm, std::abs(var) - 1);
+        if (var < 0) {
+            tmpVar = Cudd_Not(tmpVar);
+        }
+        tmpClause = Cudd_bddOr(gbm, tmpVar, clause);
+        Cudd_Ref(tmpClause);
+        Cudd_RecursiveDeref(gbm, clause);
+        clause = tmpClause;
+    }
+    return clause;
+}
+
+DdNode* createDNFClause(DdManager* gbm, std::vector<int> clauseVars) {
+    DdNode *clause = Cudd_ReadOne(gbm);
+    DdNode *tmpVar, *tmpClause;
+
+    for (int var : clauseVars) {
+        tmpVar = Cudd_bddIthVar(gbm, std::abs(var) - 1);
+        if (var < 0) {
+            tmpVar = Cudd_Not(tmpVar);
+        }
+        tmpClause = Cudd_bddAnd(gbm, tmpVar, clause);
+        Cudd_Ref(tmpClause);
+        Cudd_RecursiveDeref(gbm, clause);
+        clause = tmpClause;
+    }
+    return clause;
+}
+
+DdNode* createNFFormulaFromClauses(DdManager* gbm, FormulaInfo info) {
+    DdNode *clauseBdd, *tmpClause, *bdd;
+
+    if (info.type == Form::DNF) {
+        bdd = Cudd_ReadLogicZero(gbm);
+    } else if (info.type == Form::CNF) {
+        bdd = Cudd_ReadOne(gbm);
+    }
+    Cudd_Ref(bdd);
+
+    for (std::vector<int> clause : info.clauses) {
+
+        if (info.type == Form::DNF) {
+            clauseBdd = createDNFClause(gbm, clause);
+        } else if (info.type == Form::CNF) {
+            clauseBdd = createCNFClause(gbm, clause);
+        }
+
+        if (info.type == Form::DNF) {
+            tmpClause = Cudd_bddOr(gbm, clauseBdd, bdd);
+        } else if (info.type == Form::CNF) {
+            tmpClause = Cudd_bddAnd(gbm, clauseBdd, bdd);
+        }
+        Cudd_Ref(tmpClause);
+        Cudd_RecursiveDeref(gbm, clauseBdd);
+        Cudd_RecursiveDeref(gbm, bdd);
+        bdd = tmpClause;
+    }
+    return bdd;
+}
+
 DdNode* createNFFormulaFromInfo(DdManager *gbm, FormulaInfo info) {
     DdNode *lastVariables, *tmpLastVariables, *tmpVar, *bdd;
     lastVariables = NULL;
@@ -146,6 +214,7 @@ DdNode* createNFFormulaFromInfo(DdManager *gbm, FormulaInfo info) {
 }
 
 DdNode* createRuleset(DdManager *gbm, RulesetInfo setInfo, bool progress_output) {
+    chrono::steady_clock::time_point process_begin = chrono::steady_clock::now();
 
     DdNode *tmp, *bdd;
     if (setInfo.type == Form::CNF) {
@@ -155,18 +224,18 @@ DdNode* createRuleset(DdManager *gbm, RulesetInfo setInfo, bool progress_output)
     }
     Cudd_Ref(bdd);
 
-    std::chrono::steady_clock::time_point iteration_begin;
-    std::chrono::steady_clock::time_point iteration_end;
+    chrono::steady_clock::time_point iteration_begin;
+    chrono::steady_clock::time_point iteration_end;
     BDDBuildStatistic statistic(setInfo.clauselAmount, 10);
     for (int i = 0; i < setInfo.formulas.size(); i++) {
-        iteration_begin = std::chrono::steady_clock::now();
+        iteration_begin = chrono::steady_clock::now();
 
         DdNode* formula;
 
         if (setInfo.formulas.at(i).type == Form::AMO) {
             formula = createAMOFormulaFromInfo(gbm, setInfo.formulas.at(i));
         } else {
-            formula = createNFFormulaFromInfo(gbm, setInfo.formulas.at(i));
+            formula = createNFFormulaFromClauses(gbm, setInfo.formulas.at(i));
         }
 
         if (setInfo.type == Form::CNF) {
@@ -179,12 +248,13 @@ DdNode* createRuleset(DdManager *gbm, RulesetInfo setInfo, bool progress_output)
         Cudd_RecursiveDeref(gbm, bdd);
         bdd = tmp;
 
-        iteration_end = std::chrono::steady_clock::now();
+        iteration_end = chrono::steady_clock::now();
 
-        int stepTime_ms = std::chrono::duration_cast<std::chrono::milliseconds>(iteration_end - iteration_begin).count();
+        int stepTime_ms = chrono::duration_cast<chrono::milliseconds>(iteration_end - iteration_begin).count();
         if (progress_output) {
             statistic.logStep(setInfo.formulas.at(i), i+1, Cudd_ReadNodeCount(gbm), stepTime_ms);
             statistic.logCudd(gbm, i+1);
+            statistic.logTime(i+1, chrono::duration_cast<chrono::seconds>(iteration_end - process_begin).count());
         }
     }
 

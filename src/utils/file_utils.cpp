@@ -112,6 +112,17 @@ FormulaInfo getFormulaInfoFromLine(char* line, bool convertAmo) {
 
     info.symbols.push_back(std::stoi(temp_term));
 
+    std::vector<int> clause;
+    std::for_each(info.symbols.begin(), info.symbols.end(), [&](int symbol) {
+        if (symbol != 0) {
+            info.containedVars.insert(std::abs(symbol));
+            clause.push_back(symbol);
+        } else if (!clause.empty()) {
+            info.clauses.push_back(clause);
+            clause = {};
+        }
+    });
+
     if (type == "DNF") {
         info.type = Form::DNF;
     } else if (type == "CNF") {

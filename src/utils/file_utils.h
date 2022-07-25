@@ -5,9 +5,10 @@
 #ifndef CODE_FILE_UTILS_H
 #define CODE_FILE_UTILS_H
 
-#include <vector>
 #include <cstdio>
+#include <set>
 #include <string>
+#include <vector>
 
 enum Form {
     DNF,
@@ -19,6 +20,8 @@ struct FormulaInfo {
     int id;
     Form type;
     std::vector<int> symbols;
+    std::vector<std::vector<int>> clauses;
+    std::set<int> containedVars;
 };
 
 struct RulesetInfo{

@@ -9,7 +9,7 @@
 
 ProgressBar::ProgressBar(int totalItems): totalItems(totalItems) {}
 
-void ProgressBar::update(int itemsDone, int nodeCount, int stepTime_ms) {
+void ProgressBar::update(int itemsDone, std::string info) {
     int barWidth = 50;
     double progress = ((double) itemsDone) / this->totalItems;
 
@@ -21,6 +21,6 @@ void ProgressBar::update(int itemsDone, int nodeCount, int stepTime_ms) {
         else if (i == pos) line +=  ">";
         else line += " ";
     }
-    line += fmt::format("] {}% [{}/{}] | Node count: {} | Step time: {}ms",int(progress * 100.0), itemsDone, totalItems, nodeCount, stepTime_ms);
+    line += fmt::format("] {}% [{}/{}] | {}", int(progress * 100.0), itemsDone, totalItems, info);
     SPDLOG_INFO(line);
 }

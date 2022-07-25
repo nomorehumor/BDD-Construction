@@ -2,13 +2,13 @@
 // Created by Maxim.Popov on 04.07.2022.
 //
 
-
-#include "gtest/gtest.h"
-#include "utils/file_utils.h"
 #include "bdd_formulas/bdd_formulas.h"
+#include "spdlog/spdlog.h"
+#include "utils/file_utils.h"
 #include "utils/output_utils.h"
-#include <random>
+#include "gtest/gtest.h"
 #include <algorithm>
+#include <random>
 
 struct TestFormula {
     FormulaInfo formula;
@@ -161,19 +161,22 @@ TEST(FormulaTestSuite, CreateRandomDNFFormula) {
 }
 
 TEST(FormulaTestSuite, CreateRandomCNFFormula) {
-    int varAmount = 4;
+    int varAmount = 8;
     DdManager *gbm = Cudd_Init(varAmount, 0, CUDD_UNIQUE_SLOTS, CUDD_CACHE_SLOTS, 0); /* Initialize a new BDD manager. */
 
     TestFormula testFormula = createRandomCNFFormula(varAmount);
 
-    std::cout << "Solving CNF formula with symbols: ";
+    spdlog::info("Solving CNF formula with symbols: ");
     for (int symbol : testFormula.formula.symbols) {
         std::cout << symbol << " ";
     }
-    std::cout << std::endl ;
+    std::cout << std::endl;
 
     DdNode* bdd = createNFFormulaFromInfo(gbm, testFormula.formula);
     std::vector<std::vector<bool>> minterms = getMinterms(gbm, bdd, varAmount, std::pow(2, varAmount));
     std::vector<int> binaryMinterms = convertBooleanMintermsToBinary(minterms);
     EXPECT_TRUE(std::is_permutation(binaryMinterms.begin(), binaryMinterms.end(), testFormula.solutions.begin()));
+
+    Cudd_RecursiveDeref(gbm, bdd);
+    EXPECT_EQ(Cudd_CheckZeroRef(gbm), 0);
 }

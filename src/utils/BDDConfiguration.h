@@ -23,11 +23,13 @@ public:
 
         inputFilename = config["filename"].as<std::string>();
         outputPlots = config["output"]["output_plots"].as<bool>();
-        skipMostFrequentVar = config["ordering"]["skip_most_frequent_var"].as<bool>();
+        skipMostFrequentVar = config["ordering"]["set"]["skip_most_frequent_var"].as<bool>();
         printProgress = config["output"]["print_progress"].as<bool>();
+        setOrderingStrategy = config["ordering"]["set"]["strategy"].as<std::string>();
+        ascending = config["ordering"]["set"]["ascending"].as<bool>();
+        countAllAppearances = config["ordering"]["set"]["count_all_appearances"].as<bool>();
         enableDynamicOrdering = config["ordering"]["enable_dynamic_ordering"].as<bool>();
-        orderingStrategy = config["ordering"]["strategy"].as<std::string>();
-        ascending = config["ordering"]["ascending"].as<bool>();
+        clauseOrderingStrategy = config["ordering"]["clause"]["strategy"].as<std::string>();
     }
 
     static std::string getInputFilename() {
@@ -38,24 +40,32 @@ public:
         return printProgress;
     }
 
-    static bool getOutputPlots() {
+    static bool isOutputPlots() {
         return outputPlots;
     }
 
-    static bool getSkipMostFrequentVar() {
+    static bool isSkipMostFrequentVar() {
         return skipMostFrequentVar;
     }
 
-    static bool getEnableDynamicOrdering() {
+    static bool isEnableDynamicOrdering() {
         return enableDynamicOrdering;
     }
 
     static std::string getOrderingStrategy() {
-        return orderingStrategy;
+        return setOrderingStrategy;
     }
 
-    static bool getAscending() {
+    static bool isAscending() {
         return ascending;
+    }
+
+    static bool isCountAllAppearances() {
+        return countAllAppearances;
+    }
+
+    static std::string getClauseOrderingStrategy() {
+        return clauseOrderingStrategy;
     }
 
     BDDConfiguration(BDDConfiguration const&) = delete;
@@ -66,11 +76,14 @@ protected:
     inline static std::string inputFilename = "";
     inline static bool outputPlots = true;
     inline static bool printProgress = true;
-    inline static bool skipMostFrequentVar = true;
     inline static bool enableDynamicOrdering = true;
-    inline static std::string orderingStrategy = "none";
-    inline static bool ascending = true;
+    inline static std::string setOrderingStrategy = "none";
+    inline static bool ascending = true; // for 'size' ordering
+    inline static bool skipMostFrequentVar = true; // for 'var_frequency' ordering
+    inline static bool countAllAppearances = true; // for 'var_frequency' ordering
+    inline static std::string clauseOrderingStrategy = "none";
 
+  protected:
     BDDConfiguration() {}
     inline static BDDConfiguration* configuration_ = nullptr;
 };

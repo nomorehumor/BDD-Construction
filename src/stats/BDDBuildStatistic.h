@@ -16,6 +16,7 @@ public:
     BDDBuildStatistic(int totalItems, int outputInterval);
     void logStep(const FormulaInfo& formula, int itemsDone, int nodeCount, int stepTime_ms);
     void logCudd(DdManager *gbm, int itemsDone);
+    void logTime(int itemsDone, double totalTime_s);
 private:
 
     int outputInterval;

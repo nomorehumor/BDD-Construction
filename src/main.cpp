@@ -1,6 +1,6 @@
 
 #include "bdd_formulas/bdd_formulas.h"
-#include "bdd_formulas/formula_ordering.h"
+#include "bdd_formulas/static_ordering/formula_ordering.h"
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/sinks/stdout_sinks.h"
@@ -70,12 +70,12 @@ int main(int argc, char *argv[]) {
     RulesetInfo info = readClauselSetInfo(BDDConfiguration::getInputFilename());
     printRulesetStats(info);
 
-    info = orderRuleset(info, BDDConfiguration::getOrderingStrategy());
+    info = orderRuleset(info, BDDConfiguration::getOrderingStrategy(), BDDConfiguration::getClauseOrderingStrategy());
 
     DdManager *gbm; /* Global BDD manager. */
     gbm = Cudd_Init(info.variableAmount, 0, CUDD_UNIQUE_SLOTS, CUDD_CACHE_SLOTS,
                     0); /* Initialize a new BDD manager. */
-    if (BDDConfiguration::getEnableDynamicOrdering()) {
+    if (BDDConfiguration::isEnableDynamicOrdering()) {
         Cudd_AutodynEnable(gbm, CUDD_REORDER_SIFT);
         spdlog::info("Dynamic ordering enabled");
     } else {

@@ -11,7 +11,7 @@
 class ProgressBar {
 public:
     ProgressBar(int totalItems = 0);
-    void update(int itemsDone, int nodeCount, int stepTime_ms);
+    void update(int itemsDone, std::string info = "");
 private:
     int totalItems;
 };
