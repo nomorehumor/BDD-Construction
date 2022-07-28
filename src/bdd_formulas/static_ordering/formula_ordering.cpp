@@ -204,14 +204,14 @@ RulesetInfo orderClausesFORCE(RulesetInfo setInfo) {
 RulesetInfo orderRuleset(RulesetInfo& setInfo, std::string setStrategy, std::string clauseStrategy) {
     RulesetInfo inputSet = setInfo;
 
-    spdlog::info("Using '{}' clause ordering strategy", clauseStrategy);
+    spdlog::info("Using '{}' clause static ordering heuristic", clauseStrategy);
     if (clauseStrategy == "bottom_up") {
         inputSet = orderClausesBottomUp(setInfo);
     } else if (clauseStrategy == "force") {
         inputSet = orderClausesFORCE(setInfo);
     } else spdlog::info("Clause ordering is disabled");
 
-    spdlog::info("Using '{}' static ordering strategy", setStrategy);
+    spdlog::info("Using '{}' ruleset static ordering heuristic", setStrategy);
     if (setStrategy == "none") {
         return inputSet;
     } else if (setStrategy == "size") {

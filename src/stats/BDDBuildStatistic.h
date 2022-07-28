@@ -20,7 +20,6 @@ public:
 private:
 
     int outputInterval;
-    int formulaCount;
     ProgressBar progressBar;
     std::vector<int> nodeCountDelta;
     std::vector<int> stepNodeCount;

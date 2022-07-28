@@ -70,13 +70,41 @@ FormulaInfo FORCEPlacer::orderClausesWithPlacement(FormulaInfo formula, std::vec
     return orderedFormula;
 }
 
+int FORCEPlacer::calculateGraphTotalSpan() {
+    int totalSpan = 0;
+    for (HGEdge edge : graph.edges) {
+        int maxIndex = -1;
+        int minIndex = INT_MAX;
+        for (HGNode node : edge.nodes) {
+            int nodeIndex = std::find(graph.nodes.begin(), graph.nodes.end(), node) - graph.nodes.begin();
+            if (nodeIndex > maxIndex) {
+                maxIndex = nodeIndex;
+            }
+            if (nodeIndex < minIndex) {
+                minIndex = nodeIndex;
+            }
+        }
+        totalSpan += maxIndex - minIndex;
+    }
+    return totalSpan;
+}
+
 std::vector<HGNode> FORCEPlacer::findPlacement(bool output) {
-    int iterationsNum = std::round(5 * log(graph.nodes.size()));
+    int iterationsNum = std::round(iterationConstant * log(graph.nodes.size()));
     ProgressBar bar(iterationsNum);
 
     if (output) spdlog::info("Finding placement with FORCE");
-    for (int i = 0; i < iterationsNum; i++) {
-        if (output) bar.update(i+1);
+    int totalSpan = calculateGraphTotalSpan();
+    int newTotalSpan = totalSpan;
+    for (int i = 0; i < iterationsNum || newTotalSpan - totalSpan > spanEpsilon || newTotalSpan < totalSpan; i++) {
+        totalSpan = newTotalSpan;
+        if (output) {
+            if (i < iterationsNum) {
+                bar.update(i + 1, fmt::format("Total span: {}", totalSpan));
+            } else {
+                bar.update(iterationsNum - 1, fmt::format("(Continuing iterations) Total span: {}", totalSpan));
+            }
+        }
 
         std::map<HGEdge, double> cogs;
         for (HGEdge edge : graph.edges) {
@@ -84,9 +112,8 @@ std::vector<HGNode> FORCEPlacer::findPlacement(bool output) {
             for (HGNode node : edge.nodes) {
                 int nodeIndex = std::distance(
                     graph.nodes.begin(),
-                    std::find_if(
-                        graph.nodes.begin(), graph.nodes.end(),
-                        [&](HGNode node2) { return node2.id == node.id; }));
+                    std::find(
+                        graph.nodes.begin(), graph.nodes.end(), node));
                 nodeIndices.push_back(nodeIndex);
             }
             double cog =
@@ -111,6 +138,8 @@ std::vector<HGNode> FORCEPlacer::findPlacement(bool output) {
                   [&](HGNode node1, HGNode node2) {
                       return newIndices[node1] < newIndices[node2];
                   });
+
+        newTotalSpan = calculateGraphTotalSpan();
     }
     return graph.nodes;
 }

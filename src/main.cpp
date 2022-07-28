@@ -12,12 +12,20 @@
 #include <iomanip>
 #include <iostream>
 
+std::string getTimestamp() {
+    std::time_t now = time(nullptr);
+    std::tm *ltm = std::localtime(&now);
+    std::stringstream transTime;
+    transTime << std::put_time(ltm, "%y.%m.%d-%H.%M.%S");
+    return transTime.str();
+}
+
 void setup_logger() {
     std::time_t now = time(nullptr);
     std::tm *ltm = std::localtime(&now);
     std::stringstream transTime;
     transTime << std::put_time(ltm, "%y.%m.%d-%H.%M.%S");
-    std::string log_name = fmt::format("logs/{}.log", transTime.str());
+    std::string log_name = fmt::format("logs/{}.log", getTimestamp());
 
     std::vector<spdlog::sink_ptr> sinks;
     sinks.push_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
@@ -32,16 +40,16 @@ void setup_logger() {
     spdlog::set_pattern("[%H:%M:%S:%e] [%l] %v");
 }
 
-void printRulesetStats(RulesetInfo &info) {
+void printRulesetStats(RulesetInfo &setInfo) {
     spdlog::info("======= Ruleset info =======");
     spdlog::info("Variables amount: {0:d} | Formulas amount: {1:d}",
-                 info.variableAmount, info.clauselAmount);
+                 setInfo.variableAmount, setInfo.clauselAmount);
 
     int amoFormulasAmount = 0;
     int dnfFormulasAmount = 0;
     int cnfFormulasAmount = 0;
     int unknownFormulaTypeAmount = 0;
-    for (FormulaInfo &info : info.formulas) {
+    for (FormulaInfo &info : setInfo.formulas) {
         switch (info.type) {
         case Form::AMO:
             amoFormulasAmount++;
@@ -62,10 +70,20 @@ void printRulesetStats(RulesetInfo &info) {
     spdlog::info("Unknown type: {0:d}", unknownFormulaTypeAmount);
 }
 
+void printMinterms(std::vector<int> minterms) {
+
+}
+
 int main(int argc, char *argv[]) {
     setup_logger();
-    std::filesystem::create_directories("output");
-    BDDConfiguration::getInstance()->load("config/config.yaml");
+    std::string configPath = "config/config.yaml";
+    BDDConfiguration::getInstance()->load(configPath);
+
+    std::string outputDirName = "output/" + getTimestamp();
+    if (!std::filesystem::exists("output")) std::filesystem::create_directories("output");
+    std::filesystem::create_directories(outputDirName);
+    BDDConfiguration::setOutputDirectory(outputDirName);
+    std::filesystem::copy_file(configPath, outputDirName + "/config.yaml");
 
     RulesetInfo info = readClauselSetInfo(BDDConfiguration::getInputFilename());
     printRulesetStats(info);

@@ -180,3 +180,39 @@ TEST(FormulaTestSuite, CreateRandomCNFFormula) {
     Cudd_RecursiveDeref(gbm, bdd);
     EXPECT_EQ(Cudd_CheckZeroRef(gbm), 0);
 }
+
+TEST(FormulaTestSuite, CreateRandomDNFFormulaFromClauses) {
+    int varAmount = 8;
+    DdManager *gbm = Cudd_Init(varAmount, 0, CUDD_UNIQUE_SLOTS, CUDD_CACHE_SLOTS, 0); /* Initialize a new BDD manager. */
+
+    TestFormula testFormula = createRandomDNFFormula(varAmount);
+
+    std::cout << "Solving DNF formula with symbols: ";
+    for (int symbol : testFormula.formula.symbols) {
+        std::cout << symbol << " ";
+    }
+    std::cout << std::endl ;
+
+    DdNode* bdd = createNFFormulaFromClauses(gbm, testFormula.formula);
+    std::vector<std::vector<bool>> minterms = getMinterms(gbm, bdd, varAmount, std::pow(2, varAmount));
+    std::vector<int> binaryMinterms = convertBooleanMintermsToBinary(minterms);
+    EXPECT_TRUE(std::is_permutation(binaryMinterms.begin(), binaryMinterms.end(), testFormula.solutions.begin()));
+}
+
+TEST(FormulaTestSuite, CreateRandomDNFFormulaMerge) {
+    int varAmount = 8;
+    DdManager *gbm = Cudd_Init(varAmount, 0, CUDD_UNIQUE_SLOTS, CUDD_CACHE_SLOTS, 0); /* Initialize a new BDD manager. */
+
+    TestFormula testFormula = createRandomDNFFormula(varAmount);
+
+    std::cout << "Solving DNF formula with symbols: ";
+    for (int symbol : testFormula.formula.symbols) {
+        std::cout << symbol << " ";
+    }
+    std::cout << std::endl ;
+
+    DdNode* bdd = createNFFormulaMerge(gbm, testFormula.formula);
+    std::vector<std::vector<bool>> minterms = getMinterms(gbm, bdd, varAmount, std::pow(2, varAmount));
+    std::vector<int> binaryMinterms = convertBooleanMintermsToBinary(minterms);
+    EXPECT_TRUE(std::is_permutation(binaryMinterms.begin(), binaryMinterms.end(), testFormula.solutions.begin()));
+}

@@ -19,6 +19,11 @@ inline bool operator<(const HGNode& lhs, const HGNode& rhs)
     return lhs.id < rhs.id;
 }
 
+inline bool operator==(const HGNode& lhs, const HGNode& rhs)
+{
+    return lhs.id == rhs.id;
+}
+
 struct HGEdge {
     int id;
     std::set<HGNode> nodes;
@@ -40,13 +45,15 @@ class FORCEPlacer {
     FORCEPlacer(std::vector<FormulaInfo>& formulas);
     FORCEPlacer(FormulaInfo &formula);
 
+    int calculateGraphTotalSpan();
     std::vector<FormulaInfo> orderFormulasWithPlacement(std::vector<FormulaInfo> formulas, std::vector<HGNode> placement);
     FormulaInfo orderClausesWithPlacement(FormulaInfo formula, std::vector<HGNode> placement);
     std::vector<HGNode> findPlacement(bool output = false);
   protected:
     void createGraphEdgesFromNodes();
 
-//    std::vector<FormulaInfo> formulas;
+    const double iterationConstant = 10;
+    const double spanEpsilon = 200;
     std::map<int, std::set<HGNode>> varNodes;
     HGGraph graph;
 };

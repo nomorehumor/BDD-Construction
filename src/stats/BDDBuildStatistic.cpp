@@ -10,7 +10,6 @@
 namespace plt = matplotlibcpp;
 
 BDDBuildStatistic::BDDBuildStatistic(int totalItems, int outputInterval) {
-    this->formulaCount = totalItems;
     this->outputInterval = outputInterval;
     this->progressBar = ProgressBar(totalItems);
 }
@@ -21,7 +20,7 @@ void BDDBuildStatistic::logCudd(DdManager *gbm, int itemsDone) {
     if (itemsDone % outputInterval == 0 && BDDConfiguration::isOutputPlots()) {
         plt::plot(memorySize);
         plt::title("Used memory (in bytes)");
-        plt::save("output/memory.png");
+        plt::save(BDDConfiguration::getOutputDirectory() + "/memory.png");
         plt::clf();
     }
 }
@@ -49,15 +48,19 @@ void BDDBuildStatistic::logStep(const FormulaInfo& formula, int itemsDone, int n
     if (itemsDone % outputInterval == 0 && BDDConfiguration::isOutputPlots()) {
         plt::figure_size(1200, 780);
         plt::plot(stepTimes_ms);
-        plt::save("output/step_times.png");
+        plt::save(BDDConfiguration::getOutputDirectory() + "/step_times.png");
         plt::clf();
 
         plt::stem(nodeCountDelta, stepTimes_ms);
-        plt::save("output/nodecountdelta_times.png");
+        plt::save(BDDConfiguration::getOutputDirectory() + "/nodecountdelta_times.png");
+        plt::clf();
+
+        plt::plot(stepNodeCount);
+        plt::save(BDDConfiguration::getOutputDirectory() + "/nodecount.png");
         plt::clf();
 
         plt::stem(stepNodeCount, stepTimes_ms);
-        plt::save("output/nodecount_times.png");
+        plt::save(BDDConfiguration::getOutputDirectory() + "/nodecount_times.png");
         plt::clf();
 
         plt::figure_size(2000, 780);
@@ -84,8 +87,10 @@ void BDDBuildStatistic::logStep(const FormulaInfo& formula, int itemsDone, int n
             currentSubplotAmount++;
         }
         if (currentSubplotAmount != 1) {
-            plt::save("output/nodecountdelta_times_type_comparison.png");
+            plt::save(BDDConfiguration::getOutputDirectory() + "/nodecountdelta_times_type_comparison.png");
         }
+        plt::close();
+        plt::cla();
         plt::clf();
         plt::figure_size(1200, 780);
     }

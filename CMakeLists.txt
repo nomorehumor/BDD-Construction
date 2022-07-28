@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.16)
 project(code)
 set(CMAKE_CXX_STANDARD 20)
 
@@ -8,11 +8,10 @@ set(SPDLOG_DIR ${CMAKE_SOURCE_DIR}/libs/spdlog)
 set(YAML_DIR ${CMAKE_SOURCE_DIR}/libs/yaml-cpp)
 set(PLT_DIR ${CMAKE_SOURCE_DIR}/libs/matplotlib-cpp)
 
-set(PYTHON_EXECUTABLE /usr/bin/python3.9)
-set(PYTHON_LIBRARIES /usr/lib/python3.9)
-set(PYTHON_INCLUDE_DIRS /usr/include/python3.9)
-set(Python3_NumPy_INCLUDE_DIR /usr/local/lib/python3.9/site-packages/numpy/core/include/)
-
+#set(PYTHON_EXECUTABLE /usr/bin/python3.9)
+#set(PYTHON_LIBRARIES /usr/lib/python3.9)
+#set(PYTHON_INCLUDE_DIRS /usr/include/python3.9)
+#set(Python3_NumPy_INCLUDE_DIR /usr/local/lib/python3.9/site-packages/numpy/core/include/)
 
 find_package(PythonLibs 3.9 REQUIRED)
 find_package(Python3 COMPONENTS Interpreter Development NumPy REQUIRED)
