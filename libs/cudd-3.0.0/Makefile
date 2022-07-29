@@ -77,8 +77,8 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-build_triplet = x86_64-unknown-cygwin
-host_triplet = x86_64-unknown-cygwin
+build_triplet = x86_64-unknown-linux-gnu
+host_triplet = x86_64-unknown-linux-gnu
 #am__append_1 = dddmp/dddmp.h
 #am__append_2 = cplusplus/cuddObj.hh
 check_PROGRAMS = cudd/testcudd$(EXEEXT) cudd/testextra$(EXEEXT) \
@@ -637,9 +637,9 @@ am__set_TESTS_bases = \
   bases=`echo $$bases`
 RECHECK_LOGS = $(TEST_LOGS)
 TEST_SUITE_LOG = test-suite.log
-TEST_EXTENSIONS = .exe .test
+TEST_EXTENSIONS =  .test
 am__test_logs1 = $(TESTS:=.log)
-am__test_logs2 = $(am__test_logs1:.exe.log=.log)
+am__test_logs2 = $(am__test_logs1:.log=.log)
 TEST_LOGS = $(am__test_logs2:.test.log=.log)
 TEST_LOG_COMPILE = $(TEST_LOG_COMPILER) $(AM_TEST_LOG_FLAGS) \
 	$(TEST_LOG_FLAGS)
@@ -670,15 +670,15 @@ distuninstallcheck_listfiles = find . -type f -print
 am__distuninstallcheck_listfiles = $(distuninstallcheck_listfiles) \
   | sed 's|^\./|$(prefix)/|' | grep -v '$(infodir)/dir$$'
 distcleancheck_listfiles = find . -type f -print
-ACLOCAL = ${SHELL} /home/Maxim.Popov/cudd-3.0.0/build-aux/missing aclocal-1.14
+ACLOCAL = ${SHELL} /home/maxim/code/libs/cudd-3.0.0/build-aux/missing aclocal-1.14
 AMTAR = $${TAR-tar}
 AM_DEFAULT_VERBOSITY = 1
 AR = ar
 AS = as
-AUTOCONF = ${SHELL} /home/Maxim.Popov/cudd-3.0.0/build-aux/missing autoconf
-AUTOHEADER = ${SHELL} /home/Maxim.Popov/cudd-3.0.0/build-aux/missing autoheader
-AUTOMAKE = ${SHELL} /home/Maxim.Popov/cudd-3.0.0/build-aux/missing automake-1.14
-AWK = gawk
+AUTOCONF = ${SHELL} /home/maxim/code/libs/cudd-3.0.0/build-aux/missing autoconf
+AUTOHEADER = ${SHELL} /home/maxim/code/libs/cudd-3.0.0/build-aux/missing autoheader
+AUTOMAKE = ${SHELL} /home/maxim/code/libs/cudd-3.0.0/build-aux/missing automake-1.14
+AWK = mawk
 CC = gcc
 CCDEPMODE = depmode=gcc3
 CFLAGS = -Wall -Wextra -g -O3
@@ -688,10 +688,10 @@ CXX = g++
 CXXCPP = g++ -E
 CXXDEPMODE = depmode=gcc3
 CXXFLAGS = -Wall -Wextra -std=c++0x -g -O3
-CYGPATH_W = cygpath -w
+CYGPATH_W = echo
 DEFS = -DHAVE_CONFIG_H
 DEPDIR = .deps
-DLLTOOL = dlltool
+DLLTOOL = false
 DOXYGEN = 
 DSYMUTIL = 
 DUMPBIN = 
@@ -699,7 +699,7 @@ ECHO_C =
 ECHO_N = -n
 ECHO_T = 
 EGREP = /usr/bin/grep -E
-EXEEXT = .exe
+EXEEXT = 
 FGREP = /usr/bin/grep -F
 GREP = /usr/bin/grep
 INSTALL = /usr/bin/install -c
@@ -707,16 +707,16 @@ INSTALL_DATA = ${INSTALL} -m 644
 INSTALL_PROGRAM = ${INSTALL}
 INSTALL_SCRIPT = ${INSTALL}
 INSTALL_STRIP_PROGRAM = $(install_sh) -c -s
-LD = /usr/x86_64-pc-cygwin/bin/ld.exe
+LD = /usr/bin/ld -m elf_x86_64
 LDFLAGS = 
 LIBOBJS = 
-LIBS = -lpsapi -lws2_32 
+LIBS = -lm 
 LIBTOOL = $(SHELL) $(top_builddir)/libtool
 LIPO = 
 LN_S = ln -s
 LTLIBOBJS = 
 MAKEINDEX = 
-MAKEINFO = ${SHELL} /home/Maxim.Popov/cudd-3.0.0/build-aux/missing makeinfo
+MAKEINFO = ${SHELL} /home/maxim/code/libs/cudd-3.0.0/build-aux/missing makeinfo
 MANIFEST_TOOL = :
 MKDIR_P = /usr/bin/mkdir -p
 NM = /usr/bin/nm -B
@@ -737,13 +737,13 @@ PDFLATEX =
 RANLIB = ranlib
 SED = /usr/bin/sed
 SET_MAKE = 
-SHELL = /bin/sh
+SHELL = /bin/bash
 STRIP = strip
 VERSION = 3.0.0
-abs_builddir = /home/Maxim.Popov/cudd-3.0.0
-abs_srcdir = /home/Maxim.Popov/cudd-3.0.0
-abs_top_builddir = /home/Maxim.Popov/cudd-3.0.0
-abs_top_srcdir = /home/Maxim.Popov/cudd-3.0.0
+abs_builddir = /home/maxim/code/libs/cudd-3.0.0
+abs_srcdir = /home/maxim/code/libs/cudd-3.0.0
+abs_top_builddir = /home/maxim/code/libs/cudd-3.0.0
+abs_top_srcdir = /home/maxim/code/libs/cudd-3.0.0
 ac_ct_AR = ar
 ac_ct_CC = gcc
 ac_ct_CXX = g++
@@ -754,10 +754,10 @@ am__quote =
 am__tar = $${TAR-tar} chof - "$$tardir"
 am__untar = $${TAR-tar} xf -
 bindir = ${exec_prefix}/bin
-build = x86_64-unknown-cygwin
+build = x86_64-unknown-linux-gnu
 build_alias = 
 build_cpu = x86_64
-build_os = cygwin
+build_os = linux-gnu
 build_vendor = unknown
 builddir = .
 datadir = ${datarootdir}
@@ -765,15 +765,15 @@ datarootdir = ${prefix}/share
 docdir = ${datarootdir}/doc/${PACKAGE_TARNAME}
 dvidir = ${docdir}
 exec_prefix = ${prefix}
-host = x86_64-unknown-cygwin
+host = x86_64-unknown-linux-gnu
 host_alias = 
 host_cpu = x86_64
-host_os = cygwin
+host_os = linux-gnu
 host_vendor = unknown
 htmldir = ${docdir}
 includedir = ${prefix}/include
 infodir = ${datarootdir}/info
-install_sh = ${SHELL} /home/Maxim.Popov/cudd-3.0.0/build-aux/install-sh
+install_sh = ${SHELL} /home/maxim/code/libs/cudd-3.0.0/build-aux/install-sh
 libdir = ${exec_prefix}/lib
 libexecdir = ${exec_prefix}/libexec
 localedir = ${datarootdir}/locale
@@ -2787,13 +2787,13 @@ recheck: all $(check_PROGRAMS) $(check_SCRIPTS) $(dist_check_DATA)
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_TEST_LOG_DRIVER_FLAGS) $(TEST_LOG_DRIVER_FLAGS) -- $(TEST_LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-.test$(EXEEXT).log:
-	@p='$<'; \
-	$(am__set_b); \
-	$(am__check_pre) $(TEST_LOG_DRIVER) --test-name "$$f" \
-	--log-file $$b.log --trs-file $$b.trs \
-	$(am__common_driver_flags) $(AM_TEST_LOG_DRIVER_FLAGS) $(TEST_LOG_DRIVER_FLAGS) -- $(TEST_LOG_COMPILE) \
-	"$$tst" $(AM_TESTS_FD_REDIRECT)
+#.test$(EXEEXT).log:
+#	@p='$<'; \
+#	$(am__set_b); \
+#	$(am__check_pre) $(TEST_LOG_DRIVER) --test-name "$$f" \
+#	--log-file $$b.log --trs-file $$b.trs \
+#	$(am__common_driver_flags) $(AM_TEST_LOG_DRIVER_FLAGS) $(TEST_LOG_DRIVER_FLAGS) -- $(TEST_LOG_COMPILE) \
+#	"$$tst" $(AM_TESTS_FD_REDIRECT)
 
 distdir: $(DISTFILES)
 	$(am__remove_distdir)

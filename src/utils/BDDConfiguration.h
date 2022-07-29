@@ -30,6 +30,7 @@ public:
         countAllAppearances = config["ordering"]["set"]["count_all_appearances"].as<bool>();
         enableDynamicOrdering = config["ordering"]["enable_dynamic_ordering"].as<bool>();
         clauseOrderingStrategy = config["ordering"]["clause"]["strategy"].as<std::string>();
+        topologicalOrdering = config["ordering"]["topological"].as<std::string>();
     }
 
     static std::string getInputFilename() {
@@ -68,6 +69,10 @@ public:
         return clauseOrderingStrategy;
     }
 
+    static std::string getTopologicalOrdering() {
+        return topologicalOrdering;
+    }
+
     BDDConfiguration(BDDConfiguration const&) = delete;
     void operator=(BDDConfiguration const&) = delete;
 
@@ -82,6 +87,7 @@ protected:
     inline static bool skipMostFrequentVar = true; // for 'var_frequency' ordering
     inline static bool countAllAppearances = true; // for 'var_frequency' ordering
     inline static std::string clauseOrderingStrategy = "none";
+    inline static std::string topologicalOrdering = "dfs";
 
   protected:
     BDDConfiguration() {}

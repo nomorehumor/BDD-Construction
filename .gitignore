@@ -8,3 +8,4 @@
 *.deps/
 *.libs/
 cmake-build-debug/
+libs/cudd-3.0.0/

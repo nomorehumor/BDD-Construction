@@ -5,7 +5,7 @@
 #   Write Information on Standard Output
 #
 
-EXE=.exe
+EXE=
 srcdir=../..
 where=${srcdir}/dddmp/exp
 exitval=0

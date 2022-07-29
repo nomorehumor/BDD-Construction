@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="GhActionsToolbarSettings">
+    <option name="customRepos">
+      <map>
+        <entry key="git@github.com:gabime/spdlog.git">
+          <value>
+            <RepoSettings />
+          </value>
+        </entry>
+        <entry key="git@github.com:jbeder/yaml-cpp.git">
+          <value>
+            <RepoSettings />
+          </value>
+        </entry>
+        <entry key="git@github.com:lava/matplotlib-cpp.git">
+          <value>
+            <RepoSettings />
+          </value>
+        </entry>
+        <entry key="git@github.com:nomorehumor/BDD-Construction.git">
+          <value>
+            <RepoSettings />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>

@@ -3,16 +3,19 @@
 //
 
 #include "bdd_formulas.h"
-#include "../utils/progress_bar.h"
-#include "../utils/output_utils.h"
-#include "matplotlibcpp.h"
 #include "../stats/BDDBuildStatistic.h"
+#include "../utils/BDDConfiguration.h"
+#include "../utils/output_utils.h"
+#include "../utils/progress_bar.h"
+#include "matplotlibcpp.h"
 #include <chrono>
 
 namespace chrono = std::chrono;
 
-std::vector<std::vector<bool>> getMinterms(DdManager* gbm, DdNode* bdd, int numVars, int maxAmount, bool output) {
-    DdNode **vars = new DdNode*[numVars]();
+std::vector<std::vector<bool>> getMinterms(DdManager *gbm, DdNode *bdd,
+                                           int numVars, int maxAmount,
+                                           bool output) {
+    DdNode **vars = new DdNode *[numVars]();
     std::vector<std::vector<bool>> minterms;
 
     for (int i = 0; i < numVars; i++) {
@@ -22,8 +25,10 @@ std::vector<std::vector<bool>> getMinterms(DdManager* gbm, DdNode* bdd, int numV
     DdNode *currentNode, *temp;
     currentNode = bdd;
     Cudd_Ref(currentNode);
-    while (currentNode != Cudd_ReadLogicZero(gbm) && minterms.size() < maxAmount) {
-        DdNode* minterm = Cudd_bddPickOneMinterm(gbm, currentNode, vars, numVars);
+    while (currentNode != Cudd_ReadLogicZero(gbm) &&
+           minterms.size() < maxAmount) {
+        DdNode *minterm =
+            Cudd_bddPickOneMinterm(gbm, currentNode, vars, numVars);
 
         if (output) {
             print_dd(gbm, minterm);
@@ -48,17 +53,18 @@ std::vector<std::vector<bool>> getMinterms(DdManager* gbm, DdNode* bdd, int numV
     return minterms;
 }
 
-DdNode* createAMOFormulaFromInfo(DdManager *gbm, FormulaInfo amoInfo) {
+DdNode *createAMOFormulaFromInfo(DdManager *gbm, FormulaInfo amoInfo) {
     DdNode *tmp, *tmpVar;
-    DdNode* bdd = Cudd_ReadLogicZero(gbm);
+    DdNode *bdd = Cudd_ReadLogicZero(gbm);
     Cudd_Ref(bdd);
-    DdNode* notTerm = Cudd_ReadOne(gbm);
+    DdNode *notTerm = Cudd_ReadOne(gbm);
     Cudd_Ref(notTerm);
-    DdNode* zeroTerm = Cudd_ReadLogicZero(gbm);
+    DdNode *zeroTerm = Cudd_ReadLogicZero(gbm);
     Cudd_Ref(zeroTerm);
 
     for (int i = 0; i < amoInfo.symbols.size(); i++) {
-        if (amoInfo.symbols.at(i) == 0) continue;
+        if (amoInfo.symbols.at(i) == 0)
+            continue;
         tmpVar = Cudd_bddIthVar(gbm, std::abs(amoInfo.symbols.at(i)) - 1);
         if (amoInfo.symbols.at(i) < 0) {
             tmpVar = Cudd_Not(tmpVar);
@@ -97,9 +103,9 @@ DdNode* createAMOFormulaFromInfo(DdManager *gbm, FormulaInfo amoInfo) {
     return bdd;
 }
 
-
-DdNode* createCNFClause(DdManager* gbm, std::vector<int> clauseVars) {
+DdNode *createCNFClause(DdManager *gbm, std::vector<int> clauseVars) {
     DdNode *clause = Cudd_ReadLogicZero(gbm);
+    Cudd_Ref(clause);
     DdNode *tmpVar, *tmpClause;
 
     for (int var : clauseVars) {
@@ -115,8 +121,9 @@ DdNode* createCNFClause(DdManager* gbm, std::vector<int> clauseVars) {
     return clause;
 }
 
-DdNode* createDNFClause(DdManager* gbm, std::vector<int> clauseVars) {
+DdNode *createDNFClause(DdManager *gbm, std::vector<int> clauseVars) {
     DdNode *clause = Cudd_ReadOne(gbm);
+    Cudd_Ref(clause);
     DdNode *tmpVar, *tmpClause;
 
     for (int var : clauseVars) {
@@ -132,7 +139,7 @@ DdNode* createDNFClause(DdManager* gbm, std::vector<int> clauseVars) {
     return clause;
 }
 
-DdNode* createNFFormulaFromClauses(DdManager* gbm, FormulaInfo info) {
+DdNode *createNFFormulaFromClauses(DdManager *gbm, FormulaInfo info) {
     DdNode *clauseBdd, *tmpClause, *bdd;
 
     if (info.type == Form::DNF) {
@@ -163,7 +170,43 @@ DdNode* createNFFormulaFromClauses(DdManager* gbm, FormulaInfo info) {
     return bdd;
 }
 
-DdNode* createNFFormulaFromInfo(DdManager *gbm, FormulaInfo info) {
+DdNode *createNFFormulaMerge(DdManager *gbm, FormulaInfo info) {
+    if (info.clauses.size() == 0) {
+        DdNode *constant;
+        if (info.type == Form::DNF) {
+            constant = Cudd_ReadLogicZero(gbm);
+        } else if (info.type == Form::CNF) {
+            constant = Cudd_ReadOne(gbm);
+        }
+        Cudd_Ref(constant);
+        return constant;
+    } else if (info.clauses.size() == 1) {
+        return info.type == Form::DNF ? createDNFClause(gbm, info.clauses[0])
+                                      : createCNFClause(gbm, info.clauses[0]);
+    } else {
+        FormulaInfo formulaHalf1 = info;
+        FormulaInfo formulaHalf2 = info;
+
+        formulaHalf1.clauses =
+            std::vector<std::vector<int>>(info.clauses.begin(),
+                             info.clauses.begin() + info.clauses.size() / 2);
+        formulaHalf2.clauses = std::vector<std::vector<int>>(
+            info.clauses.begin() + (info.clauses.size() / 2),
+            info.clauses.end());
+
+        DdNode *firstHalf = createNFFormulaMerge(gbm, formulaHalf1);
+        DdNode *secondHalf = createNFFormulaMerge(gbm, formulaHalf2);
+
+        DdNode *bdd = info.type == Form::DNF ? Cudd_bddOr(gbm, firstHalf, secondHalf) : Cudd_bddAnd(gbm, firstHalf, secondHalf);
+        Cudd_Ref(bdd);
+        Cudd_RecursiveDeref(gbm, firstHalf);
+        Cudd_RecursiveDeref(gbm, secondHalf);
+
+        return bdd;
+    }
+}
+
+DdNode *createNFFormulaFromInfo(DdManager *gbm, FormulaInfo info) {
     DdNode *lastVariables, *tmpLastVariables, *tmpVar, *bdd;
     lastVariables = NULL;
     if (info.type == Form::DNF) {
@@ -181,18 +224,18 @@ DdNode* createNFFormulaFromInfo(DdManager *gbm, FormulaInfo info) {
             if (info.type == Form::DNF) {
                 tmpVar = Cudd_bddOr(gbm, lastVariables, bdd);
                 Cudd_Ref(tmpVar);
-                Cudd_RecursiveDeref(gbm,lastVariables);
+                Cudd_RecursiveDeref(gbm, lastVariables);
                 lastVariables = Cudd_ReadOne(gbm);
             } else if (info.type == Form::CNF) {
                 tmpVar = Cudd_bddAnd(gbm, lastVariables, bdd);
                 Cudd_Ref(tmpVar);
-                Cudd_RecursiveDeref(gbm,lastVariables);
+                Cudd_RecursiveDeref(gbm, lastVariables);
                 lastVariables = Cudd_ReadLogicZero(gbm);
             }
             Cudd_Ref(lastVariables);
-            Cudd_RecursiveDeref(gbm,bdd);
+            Cudd_RecursiveDeref(gbm, bdd);
             bdd = tmpVar;
-        } else if (info.symbols.at(i) != 0){
+        } else if (info.symbols.at(i) != 0) {
             tmpVar = Cudd_bddIthVar(gbm, std::abs(info.symbols.at(i)) - 1);
             if (info.symbols.at(i) < 0) {
                 tmpVar = Cudd_Not(tmpVar);
@@ -213,8 +256,10 @@ DdNode* createNFFormulaFromInfo(DdManager *gbm, FormulaInfo info) {
     return bdd;
 }
 
-DdNode* createRuleset(DdManager *gbm, RulesetInfo setInfo, bool progress_output) {
-    chrono::steady_clock::time_point process_begin = chrono::steady_clock::now();
+DdNode *createRuleset(DdManager *gbm, RulesetInfo setInfo,
+                      bool progress_output) {
+    chrono::steady_clock::time_point process_begin =
+        chrono::steady_clock::now();
 
     DdNode *tmp, *bdd;
     if (setInfo.type == Form::CNF) {
@@ -226,16 +271,22 @@ DdNode* createRuleset(DdManager *gbm, RulesetInfo setInfo, bool progress_output)
 
     chrono::steady_clock::time_point iteration_begin;
     chrono::steady_clock::time_point iteration_end;
-    BDDBuildStatistic statistic(setInfo.clauselAmount, 10);
+    BDDBuildStatistic statistic(setInfo.clauselAmount, 50);
     for (int i = 0; i < setInfo.formulas.size(); i++) {
         iteration_begin = chrono::steady_clock::now();
 
-        DdNode* formula;
+        DdNode *formula;
 
         if (setInfo.formulas.at(i).type == Form::AMO) {
             formula = createAMOFormulaFromInfo(gbm, setInfo.formulas.at(i));
         } else {
-            formula = createNFFormulaFromClauses(gbm, setInfo.formulas.at(i));
+            if (BDDConfiguration::getTopologicalOrdering() == "dfs") {
+                formula = createNFFormulaFromInfo(gbm, setInfo.formulas.at(i));
+            } else if (BDDConfiguration::getTopologicalOrdering() == "merge") {
+                formula = createNFFormulaMerge(gbm, setInfo.formulas.at(i));
+            } else {
+                formula = createNFFormulaFromInfo(gbm, setInfo.formulas.at(i));
+            }
         }
 
         if (setInfo.type == Form::CNF) {
@@ -250,11 +301,16 @@ DdNode* createRuleset(DdManager *gbm, RulesetInfo setInfo, bool progress_output)
 
         iteration_end = chrono::steady_clock::now();
 
-        int stepTime_ms = chrono::duration_cast<chrono::milliseconds>(iteration_end - iteration_begin).count();
+        int stepTime_ms = chrono::duration_cast<chrono::milliseconds>(
+                              iteration_end - iteration_begin)
+                              .count();
         if (progress_output) {
-            statistic.logStep(setInfo.formulas.at(i), i+1, Cudd_ReadNodeCount(gbm), stepTime_ms);
-            statistic.logCudd(gbm, i+1);
-            statistic.logTime(i+1, chrono::duration_cast<chrono::seconds>(iteration_end - process_begin).count());
+            statistic.logStep(setInfo.formulas.at(i), i + 1,
+                              Cudd_ReadNodeCount(gbm), stepTime_ms);
+            statistic.logCudd(gbm, i + 1);
+            statistic.logTime(i + 1, chrono::duration_cast<chrono::seconds>(
+                                         iteration_end - process_begin)
+                                         .count());
         }
     }
 

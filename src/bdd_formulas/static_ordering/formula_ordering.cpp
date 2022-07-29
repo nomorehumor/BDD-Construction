@@ -204,6 +204,7 @@ RulesetInfo orderClausesFORCE(RulesetInfo setInfo) {
 RulesetInfo orderRuleset(RulesetInfo& setInfo, std::string setStrategy, std::string clauseStrategy) {
     RulesetInfo inputSet = setInfo;
 
+    spdlog::info("Using '{}' topological ordering strategy", BDDConfiguration::getTopologicalOrdering());
     spdlog::info("Using '{}' clause ordering strategy", clauseStrategy);
     if (clauseStrategy == "bottom_up") {
         inputSet = orderClausesBottomUp(setInfo);

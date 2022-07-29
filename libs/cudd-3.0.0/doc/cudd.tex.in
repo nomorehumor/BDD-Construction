@@ -53,14 +53,14 @@ The CUDD package can be used in three ways:
   exported functions of the package. The rich set of functions
   included in the CUDD package allows many applications to be written
   in this way.  Section~\ref{sec:user} describes how to use the
-  exported functions of the package. An application written in symbols
+  exported functions of the package. An application written in terms
   of the exported functions of the package needs not concern itself
   with the details of variable reordering\index{reordering}, which may
   take place behind the scenes.
 \item As a clear box\index{box!clear}. When writing a sophisticated
   application based on decision diagrams, efficiency often dictates
   that some functions be implemented as direct recursive manipulation
-  of the diagrams, instead of being written in symbols of existing
+  of the diagrams, instead of being written in terms of existing
   primitive functions.  Section~\ref{sec:prog} explains how to add new
   functions to the CUDD package. It also details how to write a
   recursive function that may be interrupted by
@@ -857,7 +857,7 @@ header\index{header files} file of the CUDD package):
   exact\index{reordering!exact} reordering
   \cite{Held62,Friedman90,Ishiur91}, with improvements described in
   \cite{Jeong93}. It only stores one BDD at the time. Therefore, it is
-  relatively efficient in symbols of memory.  Compared to other
+  relatively efficient in terms of memory.  Compared to other
   reordering strategies, it is very slow, and is not recommended for
   more than 16 variables.
 \end{description}
@@ -1930,7 +1930,7 @@ BDDs using the C++ interface.
 	     << " less than or equal to g\n";
 \end{verbatim}
 This code creates a manager called \verb|mgr| and two variables in it.
-It then defines two functions \verb|f| and \verb|g| in symbols of the
+It then defines two functions \verb|f| and \verb|g| in terms of the
 variables. Finally, it prints a message based on the comparison of the
 two functions. No explicit referencing or dereferencing is required.
 The operators are overloaded in the intuitive way. BDDs are freed when

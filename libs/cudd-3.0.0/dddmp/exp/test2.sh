@@ -5,7 +5,7 @@
 #   Store them
 #
 
-EXE=.exe
+EXE=
 srcdir=../..
 where=${srcdir}/dddmp/exp
 dest=.

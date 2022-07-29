@@ -1,4 +1,4 @@
-filename: "C:\\dev\\Bachelor\\merlin-formulas\\wingas\\merlin-clauseset420509740828757424.txt"
+filename: "~/bench/merlin-formulas/jung-heinrich/merlin-clauseset10326873219008867624.txt"
 # "C:\\dev\\Bachelor\\test-formulas\\test_amo.txt"
 output:
   print_progress: true
@@ -14,3 +14,4 @@ ordering:
   clause:
     strategy: "force" # none, bottom_up, force
   enable_dynamic_ordering: true
+  topological: "dfs" # dfs, merge

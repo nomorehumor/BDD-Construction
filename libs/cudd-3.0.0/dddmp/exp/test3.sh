@@ -6,7 +6,7 @@
 #   Store BDDs
 #
 
-EXE=.exe
+EXE=
 srcdir=../..
 where=${srcdir}/dddmp/exp
 dest=.

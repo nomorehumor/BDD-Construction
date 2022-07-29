@@ -30,6 +30,7 @@ void setup_logger() {
     spdlog::set_default_logger(combined_logger);
     //    spdlog::set_pattern("[%H:%M:%S:%e] [%l] [%s:%#] %v");
     spdlog::set_pattern("[%H:%M:%S:%e] [%l] %v");
+    spdlog::info("Initialized logger");
 }
 
 void printRulesetStats(RulesetInfo &info) {
@@ -66,8 +67,10 @@ int main(int argc, char *argv[]) {
     setup_logger();
     std::filesystem::create_directories("output");
     BDDConfiguration::getInstance()->load("config/config.yaml");
+    spdlog::info("Loaded config");
 
     RulesetInfo info = readClauselSetInfo(BDDConfiguration::getInputFilename());
+    spdlog::info("read ruleset");
     printRulesetStats(info);
 
     info = orderRuleset(info, BDDConfiguration::getOrderingStrategy(), BDDConfiguration::getClauseOrderingStrategy());

@@ -17,7 +17,7 @@
 #   Compare original and final BDDs
 #
 
-EXE=.exe
+EXE=
 srcdir=../..
 where=${srcdir}/dddmp/exp
 dest=.

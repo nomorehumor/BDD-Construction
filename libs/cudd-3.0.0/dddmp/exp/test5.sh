@@ -7,7 +7,7 @@
 # (done twice on a small - 0.add - and a medium - 1.add - ADD).
 #
 
-EXE=.exe
+EXE=
 srcdir=../..
 where=${srcdir}/dddmp/exp
 dest=.

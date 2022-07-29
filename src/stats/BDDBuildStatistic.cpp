@@ -10,7 +10,6 @@
 namespace plt = matplotlibcpp;
 
 BDDBuildStatistic::BDDBuildStatistic(int totalItems, int outputInterval) {
-    this->formulaCount = totalItems;
     this->outputInterval = outputInterval;
     this->progressBar = ProgressBar(totalItems);
 }
@@ -56,6 +55,10 @@ void BDDBuildStatistic::logStep(const FormulaInfo& formula, int itemsDone, int n
         plt::save("output/nodecountdelta_times.png");
         plt::clf();
 
+        plt::plot(stepNodeCount);
+        plt::save("output/nodecount.png");
+        plt::clf();
+
         plt::stem(stepNodeCount, stepTimes_ms);
         plt::save("output/nodecount_times.png");
         plt::clf();
@@ -86,6 +89,7 @@ void BDDBuildStatistic::logStep(const FormulaInfo& formula, int itemsDone, int n
         if (currentSubplotAmount != 1) {
             plt::save("output/nodecountdelta_times_type_comparison.png");
         }
+        plt::close();
         plt::clf();
         plt::figure_size(1200, 780);
     }

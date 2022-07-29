@@ -201,7 +201,7 @@ typedef DdNode *DdNodePtr;
 /**
    @brief CUDD manager.
 */
-typedef struct DdMaager DdManager;
+typedef struct DdManager DdManager;
 
 /**
    @brief CUDD generator.

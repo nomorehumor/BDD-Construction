@@ -1,0 +1,17 @@
+filename: "/home/maxim/bench/merlin-formulas/wingas/merlin-clauseset10005423611921116996.txt"
+# "C:\\dev\\Bachelor\\test-formulas\\test_amo.txt"
+output:
+  print_progress: true
+  output_plots: true
+
+ordering:
+  set:
+    strategy: "force" # none, random, size, var_frequency, force
+    ascending: true # relevant only for 'size' strategy
+    skip_most_frequent_var: false # relevant only for 'var_frequency' strategy
+    count_all_appearances: false # relevant only for 'var_frequency' strategy
+
+  clause:
+    strategy: "force" # none, bottom_up, force
+  enable_dynamic_ordering: true
+  topological: "dfs" # dfs, merge

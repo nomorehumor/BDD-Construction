@@ -18,14 +18,14 @@ m4_define([_LT_COPYING], [dnl
 #   This file is part of GNU Libtool.
 #
 # GNU Libtool is free software; you can redistribute it and/or
-# modify it under the symbols of the GNU General Public License as
+# modify it under the terms of the GNU General Public License as
 # published by the Free Software Foundation; either version 2 of
 # the License, or (at your option) any later version.
 #
 # As a special exception to the GNU General Public License,
 # if you distribute this file as part of a program or library that
 # is built using GNU Libtool, you may include this file under the
-# same distribution symbols that you use for the rest of that program.
+# same distribution terms that you use for the rest of that program.
 #
 # GNU Libtool is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
