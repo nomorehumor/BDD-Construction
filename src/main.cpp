@@ -11,6 +11,7 @@
 #include "utils/output_utils.h"
 #include <filesystem>
 #include <iomanip>
+#include <climits>
 #include <iostream>
 
 std::string getTimestamp() {
