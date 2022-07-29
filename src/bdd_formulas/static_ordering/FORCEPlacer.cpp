@@ -7,6 +7,7 @@
 #include "spdlog/spdlog.h"
 #include <cmath>
 #include <numeric>
+#include <climits>
 
 void FORCEPlacer::createGraphEdgesFromNodes() {
     for (auto varNode : varNodes) {
