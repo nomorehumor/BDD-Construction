@@ -103,7 +103,7 @@ std::vector<HGNode> FORCEPlacer::findPlacement(bool output) {
             if (i < iterationsNum) {
                 bar.update(i + 1, fmt::format("Total span: {}", totalSpan));
             } else {
-                bar.update(iterationsNum - 1, fmt::format("(Continuing iterations) Total span: {}", totalSpan));
+                bar.update(i + 1, fmt::format("(Continuing iterations) Total span: {}", totalSpan));
             }
         }
 

@@ -8,6 +8,52 @@
 #include <string>
 #include "yaml-cpp/yaml.h"
 
+class InputParser{
+  public:
+    InputParser (int &argc, char **argv){
+
+        std::string currentOption = "";
+        for (int i=1; i < argc; i++) {
+            if (argv[i][0] == '-' && argv[i][1] == '-') {
+                currentOption = argv[i];
+            } else {
+                if (currentOption == "") {
+                    this->tokens.push_back(std::string(argv[i]));
+                } else {
+                    arguments[currentOption] = argv[i];
+                    currentOption = "";
+                }
+            }
+        }
+    }
+    const std::string& getCmdOption(const std::string &option) const {
+        std::vector<std::string>::const_iterator itr;
+        itr =  std::find(this->tokens.begin(), this->tokens.end(), option);
+        if (itr != this->tokens.end() && ++itr != this->tokens.end()){
+            return *itr;
+        }
+        static const std::string empty_string("");
+        return empty_string;
+    }
+
+    const std::string getCmdArgument(const std::string &arg) const {
+        return arguments.at(arg);
+    }
+
+    bool cmdOptionExists(const std::string &option) const {
+        return std::find(this->tokens.begin(), this->tokens.end(), option)
+               != this->tokens.end();
+    }
+
+    bool cmdArgumentExists(const std::string &arg) const {
+        return arguments.contains(arg);
+    }
+
+  private:
+    std::vector <std::string> tokens;
+    std::map<std::string, std::string> arguments;
+};
+
 
 class BDDConfiguration {
 public:
@@ -25,12 +71,25 @@ public:
         outputPlots = config["output"]["output_plots"].as<bool>();
         skipMostFrequentVar = config["ordering"]["set"]["skip_most_frequent_var"].as<bool>();
         printProgress = config["output"]["print_progress"].as<bool>();
-        setOrderingStrategy = config["ordering"]["set"]["strategy"].as<std::string>();
+        orderingStrategy = config["ordering"]["set"]["strategy"].as<std::string>();
         ascending = config["ordering"]["set"]["ascending"].as<bool>();
         countAllAppearances = config["ordering"]["set"]["count_all_appearances"].as<bool>();
         enableDynamicOrdering = config["ordering"]["enable_dynamic_ordering"].as<bool>();
         clauseOrderingStrategy = config["ordering"]["clause"]["strategy"].as<std::string>();
         topologicalOrdering = config["ordering"]["topological"].as<std::string>();
+    }
+
+    static void parseArgs(int argc, char *argv[]) {
+        InputParser parser(argc, argv);
+        if (parser.cmdArgumentExists("--ordering")) {
+            orderingStrategy = parser.getCmdArgument("--ordering");
+        }
+        if (parser.cmdArgumentExists("--topological")) {
+            topologicalOrdering = parser.getCmdArgument("--topological");
+        }
+        if (parser.cmdArgumentExists("--filename")) {
+            inputFilename = parser.getCmdArgument("--filename");
+        }
     }
 
     static std::string getInputFilename() {
@@ -54,7 +113,7 @@ public:
     }
 
     static std::string getOrderingStrategy() {
-        return setOrderingStrategy;
+        return orderingStrategy;
     }
 
     static bool isAscending() {
@@ -90,7 +149,7 @@ protected:
     inline static bool outputPlots = true;
     inline static bool printProgress = true;
     inline static bool enableDynamicOrdering = true;
-    inline static std::string setOrderingStrategy = "none";
+    inline static std::string orderingStrategy = "none";
     inline static bool ascending = true; // for 'size' ordering
     inline static bool skipMostFrequentVar = true; // for 'var_frequency' ordering
     inline static bool countAllAppearances = true; // for 'var_frequency' ordering
@@ -98,7 +157,6 @@ protected:
     inline static std::string topologicalOrdering = "dfs";
     inline static std::string outputDirectory = "output";
 
-  protected:
     BDDConfiguration() {}
     inline static BDDConfiguration* configuration_ = nullptr;
 };
