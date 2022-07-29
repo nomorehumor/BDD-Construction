@@ -7,3 +7,6 @@
 [submodule "libs/yaml-cpp"]
 	path = libs/yaml-cpp
 	url = git@github.com:jbeder/yaml-cpp.git
+[submodule "libs/googletest"]
+	path = libs/googletest
+	url = git@github.com:google/googletest.git
