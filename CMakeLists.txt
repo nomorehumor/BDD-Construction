@@ -11,7 +11,7 @@ set(PLT_DIR ${CMAKE_SOURCE_DIR}/libs/matplotlib-cpp)
 #set(PYTHON_EXECUTABLE /usr/bin/python3.9)
 #set(PYTHON_LIBRARIES /usr/lib/python3.9)
 #set(PYTHON_INCLUDE_DIRS /usr/include/python3.9)
-#set(Python3_NumPy_INCLUDE_DIR /usr/local/lib/python3.9/site-packages/numpy/core/include/)
+#set(Python3_NumPy_INCLUDE_DIR /usr/lo cal/lib/python3.9/site-packages/numpy/core/include/)
 
 find_package(PythonLibs 3.9 REQUIRED)
 find_package(Python3 COMPONENTS Interpreter Development NumPy REQUIRED)
