@@ -4,7 +4,6 @@ set(GTEST_DIR ${CMAKE_SOURCE_DIR}/libs/googletest-release-1.12.1)
 set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
 
 
-add_subdirectory(googletest-release-1.12.1)
 include_directories(${GTEST_DIR}/include ${GTEST_DIR})
 include_directories(${CUDD_DIR}/cudd)
 include_directories(${SRC_DIR})
