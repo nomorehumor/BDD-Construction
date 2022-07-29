@@ -7,6 +7,7 @@
 #include "spdlog/spdlog.h"
 #include "utils/BDDConfiguration.h"
 #include "utils/file_utils.h"
+#include "utils/minterm_utils.h"
 #include "utils/output_utils.h"
 #include <filesystem>
 #include <iomanip>
@@ -70,8 +71,20 @@ void printRulesetStats(RulesetInfo &setInfo) {
     spdlog::info("Unknown type: {0:d}", unknownFormulaTypeAmount);
 }
 
-void printMinterms(std::vector<int> minterms) {
+void printMinterms(std::vector<std::vector<bool>> minterms) {
+    if (minterms.empty()) spdlog::info("No minterms for this BDD");
+    int varAmount = minterms[0].size();
+    std::vector<int> mintermsBinary = convertBooleanMintermsToBinary(minterms);
+    for (int i = 0; i <  mintermsBinary.size(); i++) {
+        std::string mintermRepr = "";
 
+        int mintermRest = mintermsBinary[i];
+        for (int i = 0; i < varAmount; i++) {
+            mintermRepr += std::to_string(mintermRest % 2);
+            mintermRest = mintermRest >> 1;
+        }
+        spdlog::info("#{0:d} {1}", i, mintermRepr);
+    }
 }
 
 int main(int argc, char *argv[]) {
@@ -103,8 +116,10 @@ int main(int argc, char *argv[]) {
     DdNode *bdd =
         createRuleset(gbm, info, BDDConfiguration::getPrintProgress());
     print_dd(gbm, bdd);
-    spdlog::info("Minterm count: {0:f}",
-                 Cudd_CountMinterm(gbm, bdd, info.variableAmount));
+    spdlog::info("Minterm count: {0:d}",
+                 (int) Cudd_CountMinterm(gbm, bdd, info.variableAmount));
+
+    printMinterms(getMinterms(gbm, bdd, info.variableAmount, INT_MAX));
 
     //    char out_filename[30];
     //    sprintf(out_filename, "bdd.dot");

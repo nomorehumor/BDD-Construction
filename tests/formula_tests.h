@@ -5,6 +5,7 @@
 #include "bdd_formulas/bdd_formulas.h"
 #include "spdlog/spdlog.h"
 #include "utils/file_utils.h"
+#include "utils/minterm_utils.h"
 #include "utils/output_utils.h"
 #include "gtest/gtest.h"
 #include <algorithm>
@@ -14,28 +15,6 @@ struct TestFormula {
     FormulaInfo formula;
     std::vector<int> solutions;
 };
-
-std::vector<int> convertBooleanMintermsToBinary(std::vector<std::vector<bool>> minterms) {
-    std::vector<int> binaryMinterms;
-    for (std::vector<bool> minterm : minterms) {
-        int binaryMinterm = 0;
-        for (int i = 0; i < minterm.size(); i++) {
-            if (minterm[i]) binaryMinterm |= 1 << i;
-        }
-        binaryMinterms.push_back(binaryMinterm);
-    }
-    return binaryMinterms;
-}
-
-std::vector<int> convertMaxtermsToMinterms(std::vector<int> maxterms, int varAmount) {
-    std::vector<int> minterms;
-    for (int i = 0; i < std::pow(2, varAmount); i++) {
-        if (std::find(maxterms.begin(), maxterms.end(), i) == maxterms.end()) {
-            minterms.push_back(i);
-        }
-    }
-    return minterms;
-}
 
 TestFormula createRandomCNFFormula(int varAmount) {
     FormulaInfo formulaInfo;
