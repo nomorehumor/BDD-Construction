@@ -92,6 +92,7 @@ int main(int argc, char *argv[]) {
     setup_logger();
     std::string configPath = "config/config.yaml";
     BDDConfiguration::getInstance()->load(configPath);
+    BDDConfiguration::parseArgs(argc, argv);
 
     std::string outputDirName = "output/" + getTimestamp();
     if (!std::filesystem::exists("output")) std::filesystem::create_directories("output");
