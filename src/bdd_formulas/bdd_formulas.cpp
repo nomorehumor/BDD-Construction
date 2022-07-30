@@ -218,6 +218,53 @@ DdNode *createNFFormulaFromInfo(DdManager *gbm, FormulaInfo info) {
     return bdd;
 }
 
+DdNode *createRulesetMerged(DdManager *gbm, RulesetInfo setInfo, int partsAmount, bool progressOutput) {
+    if (partsAmount > setInfo.formulas.size()) {
+        partsAmount = setInfo.formulas.size();
+    }
+
+    std::vector<RulesetInfo> partialRulesets;
+    int formulasInRuleset = ceil((double) setInfo.formulas.size() / (double) partsAmount);
+    for (int i = 0; i < partsAmount; i++) {
+        RulesetInfo rulesetPart = setInfo;
+        if (i == partsAmount - 1) {
+            rulesetPart.formulas = std::vector<FormulaInfo>(setInfo.formulas.begin() + i * formulasInRuleset, setInfo.formulas.end());
+        } else {
+            rulesetPart.formulas = std::vector<FormulaInfo>(setInfo.formulas.begin() + i * formulasInRuleset, setInfo.formulas.begin() + (i+1) * formulasInRuleset);
+        }
+        partialRulesets.push_back(rulesetPart);
+    }
+
+    DdNode *tmp, *bdd;
+    if (setInfo.type == Form::CNF) {
+        bdd = Cudd_ReadOne(gbm);
+    } else if (setInfo.type == Form::DNF) {
+        bdd = Cudd_ReadLogicZero(gbm);
+    }
+    Cudd_Ref(bdd);
+
+    spdlog::info("Splitted the ruleset into {0:d} parts", partialRulesets.size());
+    int i = 0;
+    for (RulesetInfo rulesetPart : partialRulesets) {
+        spdlog::info("Creating BDD for part #{0:d}",i);
+        i++;
+
+        DdNode* bddPart = createRuleset(gbm, rulesetPart, progressOutput);
+
+        if (setInfo.type == Form::CNF) {
+            tmp = Cudd_bddAnd(gbm, bddPart, bdd);
+        } else if (setInfo.type == Form::DNF) {
+            tmp = Cudd_bddOr(gbm, bddPart, bdd);
+        }
+        Cudd_Ref(tmp);
+        Cudd_RecursiveDeref(gbm, bddPart);
+        Cudd_RecursiveDeref(gbm, bdd);
+        bdd = tmp;
+    }
+
+    return bdd;
+}
+
 DdNode *createRuleset(DdManager *gbm, RulesetInfo setInfo,
                       bool progress_output) {
     chrono::steady_clock::time_point process_begin =
@@ -277,6 +324,10 @@ DdNode *createRuleset(DdManager *gbm, RulesetInfo setInfo,
                                          .count());
         }
     }
+
+    spdlog::info("BDD generated in {0:d}s", chrono::duration_cast<chrono::seconds>(
+                                                iteration_end - process_begin)
+                                                .count());
 
     return bdd;
 }

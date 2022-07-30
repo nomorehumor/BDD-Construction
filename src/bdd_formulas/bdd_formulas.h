@@ -14,5 +14,7 @@ DdNode* createNFFormulaFromInfo(DdManager *gbm, FormulaInfo info);
 DdNode* createRuleset(DdManager *gbm, RulesetInfo setInfo, bool progress_output = false);
 DdNode* createNFFormulaFromClauses(DdManager *gbm, FormulaInfo info);
 DdNode* createNFFormulaMerge(DdManager *gbm, FormulaInfo info);
+DdNode *createRulesetMerged(DdManager *gbm, RulesetInfo setInfo, int partsAmount, bool progressOutput);
+
 
 #endif //CODE_BDD_FORMULAS_H

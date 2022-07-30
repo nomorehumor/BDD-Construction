@@ -12,7 +12,6 @@
 #include <filesystem>
 #include <iomanip>
 #include <climits>
-#include <iostream>
 
 std::string getTimestamp() {
     std::time_t now = time(nullptr);
@@ -115,8 +114,10 @@ int main(int argc, char *argv[]) {
         spdlog::info("Dynamic ordering disabled");
     }
 
+//    DdNode *bdd =
+//        createRuleset(gbm, info, BDDConfiguration::getPrintProgress());
     DdNode *bdd =
-        createRuleset(gbm, info, BDDConfiguration::getPrintProgress());
+        createRulesetMerged(gbm, info, 5, BDDConfiguration::getPrintProgress());
     print_dd(gbm, bdd);
     spdlog::info("Minterm count: {0:d}",
                  (int) Cudd_CountMinterm(gbm, bdd, info.variableAmount));
