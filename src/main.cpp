@@ -26,7 +26,7 @@ void setup_logger() {
     std::tm *ltm = std::localtime(&now);
     std::stringstream transTime;
     transTime << std::put_time(ltm, "%y.%m.%d-%H.%M.%S");
-    std::string log_name = fmt::format("logs/{}.log", getTimestamp());
+    std::string log_name = fmt::format("{}/{}.log", BDDConfiguration::getOutputDirectory(), getTimestamp());
 
     std::vector<spdlog::sink_ptr> sinks;
     sinks.push_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
@@ -107,7 +107,6 @@ DdNode* createBDD(RulesetInfo info, DdManager* gbm) {
 
 int main(int argc, char *argv[]) {
     std::string configPath = "config/config.yaml";
-    setup_logger();
     BDDConfiguration::getInstance()->load(configPath);
     BDDConfiguration::parseArgs(argc, argv);
 
@@ -116,6 +115,8 @@ int main(int argc, char *argv[]) {
     std::filesystem::create_directories(outputDirName);
     BDDConfiguration::setOutputDirectory(outputDirName);
     std::filesystem::copy_file(configPath, outputDirName + "/config.yaml");
+
+    setup_logger();
 
     RulesetInfo info = readClauselSetInfo(BDDConfiguration::getInputFilename());
     DdManager *gbm = Cudd_Init(info.variableAmount, 0, CUDD_UNIQUE_SLOTS, CUDD_CACHE_SLOTS,
