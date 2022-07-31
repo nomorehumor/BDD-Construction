@@ -18,7 +18,7 @@ std::string getTimestamp() {
     std::tm *ltm = std::localtime(&now);
     std::stringstream transTime;
     transTime << std::put_time(ltm, "%y.%m.%d-%H.%M.%S");
-    return transTime.str();
+    return transTime.str() + "." + std::to_string(std::chrono::high_resolution_clock::now().time_since_epoch().count());
 }
 
 void setup_logger() {
