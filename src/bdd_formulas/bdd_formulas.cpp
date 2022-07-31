@@ -13,8 +13,6 @@
 
 namespace chrono = std::chrono;
 
-
-
 DdNode *createAMOFormulaFromInfo(DdManager *gbm, FormulaInfo amoInfo) {
     DdNode *tmp, *tmpVar;
     DdNode *bdd = Cudd_ReadLogicZero(gbm);
@@ -232,6 +230,7 @@ DdNode *createRulesetMerged(DdManager *gbm, RulesetInfo setInfo, int partsAmount
         } else {
             rulesetPart.formulas = std::vector<FormulaInfo>(setInfo.formulas.begin() + i * formulasInRuleset, setInfo.formulas.begin() + (i+1) * formulasInRuleset);
         }
+        rulesetPart.clauselAmount = rulesetPart.formulas.size();
         partialRulesets.push_back(rulesetPart);
     }
 
@@ -278,7 +277,8 @@ DdNode *createRuleset(DdManager *gbm, RulesetInfo setInfo,
     }
     Cudd_Ref(bdd);
 
-    spdlog::info("Using '{}' topological ordering strategy", BDDConfiguration::getTopologicalOrdering());
+    spdlog::info("Using '{}' topological ordering strategy",
+                 BDDConfiguration::getConstructionFormulaOrdering());
 
     chrono::steady_clock::time_point iteration_begin;
     chrono::steady_clock::time_point iteration_end;
@@ -291,9 +291,9 @@ DdNode *createRuleset(DdManager *gbm, RulesetInfo setInfo,
         if (setInfo.formulas.at(i).type == Form::AMO) {
             formula = createAMOFormulaFromInfo(gbm, setInfo.formulas.at(i));
         } else {
-            if (BDDConfiguration::getTopologicalOrdering() == "dfs") {
+            if (BDDConfiguration::getConstructionFormulaOrdering() == "dfs") {
                 formula = createNFFormulaFromInfo(gbm, setInfo.formulas.at(i));
-            } else if (BDDConfiguration::getTopologicalOrdering() == "merge") {
+            } else if (BDDConfiguration::getConstructionFormulaOrdering() == "merge") {
                 formula = createNFFormulaMerge(gbm, setInfo.formulas.at(i));
             } else {
                 formula = createNFFormulaFromInfo(gbm, setInfo.formulas.at(i));

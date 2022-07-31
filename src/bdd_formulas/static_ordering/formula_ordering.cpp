@@ -187,9 +187,9 @@ RulesetInfo orderClausesFORCE(RulesetInfo setInfo) {
     int i = 1;
     spdlog::info("Ordering clauses with FORCE");
     for (FormulaInfo& formula : setInfo.formulas) {
-        bar.update(i);
         if (formula.clauses.size() > 2) {
             FORCEPlacer placer(formula);
+            bar.update(i);
             formulas.push_back(placer.orderClausesWithPlacement(formula, placer.findPlacement()));
         } else {
             formulas.push_back(formula);
@@ -197,6 +197,7 @@ RulesetInfo orderClausesFORCE(RulesetInfo setInfo) {
 
         i++;
     }
+    bar.update(i);
     setInfo.formulas = formulas;
     return setInfo;
 }
