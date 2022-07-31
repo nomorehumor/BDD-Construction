@@ -72,11 +72,11 @@ void printRulesetStats(RulesetInfo &setInfo) {
 }
 
 void printMinterms(std::vector<std::vector<bool>> minterms) {
-    if (minterms.empty()) spdlog::info("No minterms for this BDD");
+    if (minterms.empty()) spdlog::warn("No minterms for this BDD");
     for (int i = 0; i <  minterms.size(); i++) {
         std::string mintermRepr = "";
 
-        for (int j = 0; i < minterms[i].size(); j++) {
+        for (int j = 0; j < minterms[i].size(); j++) {
             mintermRepr += std::to_string(minterms[i][j]);
         }
         spdlog::info("#{0:d} {1}", i, mintermRepr);
@@ -123,8 +123,9 @@ int main(int argc, char *argv[]) {
     DdNode* bdd = createBDD(info, gbm);
 
 //    print_dd(gbm, bdd);
-    spdlog::info("Minterm count: {0:d}",
-                 (int) Cudd_CountMinterm(gbm, bdd, info.variableAmount));
+    double mintermsCount = Cudd_CountMinterm(gbm, bdd, info.variableAmount);
+    spdlog::info("Minterm count: {0:f}",
+                 mintermsCount);
 
     printMinterms(getMinterms(gbm, bdd, info.variableAmount, 50));
 

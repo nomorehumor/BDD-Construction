@@ -31,8 +31,8 @@ std::vector<std::vector<bool>> getMinterms(DdManager *gbm, DdNode *bdd,
 
         Cudd_Ref(minterm);
         std::vector<bool> mintermSolution;
-        for (int i = 0; i < numVars; i++) {
-            mintermSolution.push_back(Cudd_bddLeq(gbm, minterm, vars[i]));
+        for (int j = 0; j < numVars; j++) {
+            mintermSolution.push_back(Cudd_bddLeq(gbm, minterm, vars[j]));
         }
         minterms.push_back(mintermSolution);
 
