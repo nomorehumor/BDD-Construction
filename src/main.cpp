@@ -87,9 +87,31 @@ void printMinterms(std::vector<std::vector<bool>> minterms) {
     }
 }
 
+DdNode* createBDD(RulesetInfo info, DdManager* gbm) {
+    printRulesetStats(info);
+
+    info = orderRuleset(info, BDDConfiguration::getOrderingStrategy(), BDDConfiguration::getClauseOrderingStrategy());
+
+    if (BDDConfiguration::isEnableDynamicOrdering()) {
+        Cudd_AutodynEnable(gbm, CUDD_REORDER_SIFT);
+        spdlog::info("Dynamic ordering enabled");
+    } else {
+        spdlog::info("Dynamic ordering disabled");
+    }
+
+    if (BDDConfiguration::getConstructionRulesetOrdering() == "dfs") {
+        return createRuleset(gbm, info, BDDConfiguration::getPrintProgress());
+    } else if (BDDConfiguration::getConstructionRulesetOrdering() == "merge") {
+        return createRulesetMerged(gbm, info, BDDConfiguration::getMergePartsAmount(), BDDConfiguration::getPrintProgress());
+    } else {
+        spdlog::info("No known ruleset construction strategy specified, using 'dfs'");
+        return createRuleset(gbm, info, BDDConfiguration::getPrintProgress());
+    }
+}
+
 int main(int argc, char *argv[]) {
-    setup_logger();
     std::string configPath = "config/config.yaml";
+    setup_logger();
     BDDConfiguration::getInstance()->load(configPath);
     BDDConfiguration::parseArgs(argc, argv);
 
@@ -100,24 +122,10 @@ int main(int argc, char *argv[]) {
     std::filesystem::copy_file(configPath, outputDirName + "/config.yaml");
 
     RulesetInfo info = readClauselSetInfo(BDDConfiguration::getInputFilename());
-    printRulesetStats(info);
+    DdManager *gbm = Cudd_Init(info.variableAmount, 0, CUDD_UNIQUE_SLOTS, CUDD_CACHE_SLOTS,
+                    0);
+    DdNode* bdd = createBDD(info, gbm);
 
-    info = orderRuleset(info, BDDConfiguration::getOrderingStrategy(), BDDConfiguration::getClauseOrderingStrategy());
-
-    DdManager *gbm; /* Global BDD manager. */
-    gbm = Cudd_Init(info.variableAmount, 0, CUDD_UNIQUE_SLOTS, CUDD_CACHE_SLOTS,
-                    0); /* Initialize a new BDD manager. */
-    if (BDDConfiguration::isEnableDynamicOrdering()) {
-        Cudd_AutodynEnable(gbm, CUDD_REORDER_SIFT);
-        spdlog::info("Dynamic ordering enabled");
-    } else {
-        spdlog::info("Dynamic ordering disabled");
-    }
-
-//    DdNode *bdd =
-//        createRuleset(gbm, info, BDDConfiguration::getPrintProgress());
-    DdNode *bdd =
-        createRulesetMerged(gbm, info, 5, BDDConfiguration::getPrintProgress());
     print_dd(gbm, bdd);
     spdlog::info("Minterm count: {0:d}",
                  (int) Cudd_CountMinterm(gbm, bdd, info.variableAmount));

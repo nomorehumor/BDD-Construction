@@ -76,7 +76,9 @@ public:
         countAllAppearances = config["ordering"]["set"]["count_all_appearances"].as<bool>();
         enableDynamicOrdering = config["ordering"]["enable_dynamic_ordering"].as<bool>();
         clauseOrderingStrategy = config["ordering"]["clause"]["strategy"].as<std::string>();
-        topologicalOrdering = config["ordering"]["topological"].as<std::string>();
+        constructionFormulaOrdering = config["ordering"]["construction"]["formula"].as<std::string>();
+        constructionRulesetOrdering = config["ordering"]["construction"]["ruleset"].as<std::string>();
+        mergeParts = config["ordering"]["construction"]["parts_amount"].as<int>();
     }
 
     static void parseArgs(int argc, char *argv[]) {
@@ -85,10 +87,13 @@ public:
             orderingStrategy = parser.getCmdArgument("--ordering");
         }
         if (parser.cmdArgumentExists("--topological")) {
-            topologicalOrdering = parser.getCmdArgument("--topological");
+            constructionFormulaOrdering = parser.getCmdArgument("--topological");
         }
         if (parser.cmdArgumentExists("--filename")) {
             inputFilename = parser.getCmdArgument("--filename");
+        }
+        if (parser.cmdArgumentExists("--parts_amount")) {
+            mergeParts = std::stoi(parser.getCmdArgument("--parts_amount"));
         }
     }
 
@@ -128,8 +133,16 @@ public:
         return clauseOrderingStrategy;
     }
 
-    static std::string getTopologicalOrdering() {
-        return topologicalOrdering;
+    static std::string getConstructionFormulaOrdering() {
+        return constructionFormulaOrdering;
+    }
+
+    static std::string getConstructionRulesetOrdering() {
+        return constructionRulesetOrdering;
+    }
+
+    static int getMergePartsAmount() {
+        return mergeParts;
     }
 
     static std::string getOutputDirectory() {
@@ -154,7 +167,9 @@ protected:
     inline static bool skipMostFrequentVar = true; // for 'var_frequency' ordering
     inline static bool countAllAppearances = true; // for 'var_frequency' ordering
     inline static std::string clauseOrderingStrategy = "none";
-    inline static std::string topologicalOrdering = "dfs";
+    inline static std::string constructionFormulaOrdering = "dfs";
+    inline static std::string constructionRulesetOrdering = "merge";
+    inline static int mergeParts = 10;
     inline static std::string outputDirectory = "output";
 
     BDDConfiguration() {}

@@ -14,4 +14,7 @@ ordering:
   clause:
     strategy: "force" # none, bottom_up, force
   enable_dynamic_ordering: true
-  topological: "dfs" # dfs, merge
+  construction:
+    formula: "dfs" # dfs, merge
+    ruleset: "merge" # dfs, merge
+    parts_amount: 10 # relevant only for ruleset 'merge' strategy
