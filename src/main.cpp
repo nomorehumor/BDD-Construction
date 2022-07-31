@@ -73,15 +73,11 @@ void printRulesetStats(RulesetInfo &setInfo) {
 
 void printMinterms(std::vector<std::vector<bool>> minterms) {
     if (minterms.empty()) spdlog::info("No minterms for this BDD");
-    int varAmount = minterms[0].size();
-    std::vector<int> mintermsBinary = convertBooleanMintermsToBinary(minterms);
-    for (int i = 0; i <  mintermsBinary.size(); i++) {
+    for (int i = 0; i <  minterms.size(); i++) {
         std::string mintermRepr = "";
 
-        int mintermRest = mintermsBinary[i];
-        for (int i = 0; i < varAmount; i++) {
-            mintermRepr += std::to_string(mintermRest % 2);
-            mintermRest = mintermRest >> 1;
+        for (int j = 0; i < minterms[i].size(); j++) {
+            mintermRepr += std::to_string(minterms[i][j]);
         }
         spdlog::info("#{0:d} {1}", i, mintermRepr);
     }
@@ -126,11 +122,11 @@ int main(int argc, char *argv[]) {
                     0);
     DdNode* bdd = createBDD(info, gbm);
 
-    print_dd(gbm, bdd);
+//    print_dd(gbm, bdd);
     spdlog::info("Minterm count: {0:d}",
                  (int) Cudd_CountMinterm(gbm, bdd, info.variableAmount));
 
-    printMinterms(getMinterms(gbm, bdd, info.variableAmount, INT_MAX));
+    printMinterms(getMinterms(gbm, bdd, info.variableAmount, 50));
 
     //    char out_filename[30];
     //    sprintf(out_filename, "bdd.dot");
