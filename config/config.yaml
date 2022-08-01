@@ -16,5 +16,5 @@ ordering:
   enable_dynamic_ordering: true
   construction:
     formula: "dfs" # dfs, merge
-    ruleset: "merge" # dfs, merge
-    parts_amount: 10 # relevant only for ruleset 'merge' strategy
+    ruleset: "merge_recursive" # dfs, merge_recursive, merge_parts
+    parts_amount: 10 # relevant only for ruleset 'merge_parts' strategy

@@ -1,5 +1,5 @@
 
-#include "bdd_formulas/bdd_formulas.h"
+#include "bdd_formulas/bdd_rulesets.h"
 #include "bdd_formulas/static_ordering/formula_ordering.h"
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
@@ -9,16 +9,19 @@
 #include "utils/file_utils.h"
 #include "utils/minterm_utils.h"
 #include "utils/output_utils.h"
+#include <climits>
 #include <filesystem>
 #include <iomanip>
-#include <climits>
 
 std::string getTimestamp() {
     std::time_t now = time(nullptr);
     std::tm *ltm = std::localtime(&now);
     std::stringstream transTime;
     transTime << std::put_time(ltm, "%y.%m.%d-%H.%M.%S");
-    return transTime.str() + "." + std::to_string(std::chrono::high_resolution_clock::now().time_since_epoch().count());
+    return transTime.str() + "." +
+           std::to_string(std::chrono::high_resolution_clock::now()
+                              .time_since_epoch()
+                              .count());
 }
 
 void setup_logger() {
@@ -26,7 +29,8 @@ void setup_logger() {
     std::tm *ltm = std::localtime(&now);
     std::stringstream transTime;
     transTime << std::put_time(ltm, "%y.%m.%d-%H.%M.%S");
-    std::string log_name = fmt::format("{}/{}.log", BDDConfiguration::getOutputDirectory(), getTimestamp());
+    std::string log_name = fmt::format(
+        "{}/{}.log", BDDConfiguration::getOutputDirectory(), getTimestamp());
 
     std::vector<spdlog::sink_ptr> sinks;
     sinks.push_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
@@ -35,7 +39,7 @@ void setup_logger() {
     auto combined_logger =
         std::make_shared<spdlog::logger>("log", begin(sinks), end(sinks));
 
-    combined_logger->flush_on(spdlog::level::info);
+    combined_logger->flush_on(spdlog::level::debug);
     spdlog::set_default_logger(combined_logger);
     //    spdlog::set_pattern("[%H:%M:%S:%e] [%l] [%s:%#] %v");
     spdlog::set_pattern("[%H:%M:%S:%e] [%l] %v");
@@ -72,8 +76,9 @@ void printRulesetStats(RulesetInfo &setInfo) {
 }
 
 void printMinterms(std::vector<std::vector<bool>> minterms) {
-    if (minterms.empty()) spdlog::warn("No minterms for this BDD");
-    for (int i = 0; i <  minterms.size(); i++) {
+    if (minterms.empty())
+        spdlog::warn("No minterms for this BDD");
+    for (int i = 0; i < minterms.size(); i++) {
         std::string mintermRepr = "";
 
         for (int j = 0; j < minterms[i].size(); j++) {
@@ -83,10 +88,11 @@ void printMinterms(std::vector<std::vector<bool>> minterms) {
     }
 }
 
-DdNode* createBDD(RulesetInfo info, DdManager* gbm) {
+DdNode *createBDD(RulesetInfo info, DdManager *gbm) {
     printRulesetStats(info);
 
-    info = orderRuleset(info, BDDConfiguration::getOrderingStrategy(), BDDConfiguration::getClauseOrderingStrategy());
+    info = orderRuleset(info, BDDConfiguration::getOrderingStrategy(),
+                        BDDConfiguration::getClauseOrderingStrategy());
 
     if (BDDConfiguration::isEnableDynamicOrdering()) {
         Cudd_AutodynEnable(gbm, CUDD_REORDER_SIFT);
@@ -95,12 +101,21 @@ DdNode* createBDD(RulesetInfo info, DdManager* gbm) {
         spdlog::info("Dynamic ordering disabled");
     }
 
+    spdlog::info("Using '{}' ruleset construction strategy",
+                 BDDConfiguration::getConstructionRulesetOrdering());
+
     if (BDDConfiguration::getConstructionRulesetOrdering() == "dfs") {
         return createRuleset(gbm, info, BDDConfiguration::getPrintProgress());
-    } else if (BDDConfiguration::getConstructionRulesetOrdering() == "merge") {
-        return createRulesetMerged(gbm, info, BDDConfiguration::getMergePartsAmount(), BDDConfiguration::getPrintProgress());
+    } else if (BDDConfiguration::getConstructionRulesetOrdering() == "merge_parts") {
+        return createRulesetMergedParts(gbm, info,
+                                   BDDConfiguration::getMergePartsAmount(),
+                                   BDDConfiguration::getPrintProgress());
+    } else if (BDDConfiguration::getConstructionRulesetOrdering() == "merge_recursive") {
+        BDDBuildStatistic statisticForAllRuns(info.clauselAmount, 50);
+        return createRulesetMerged(gbm, info, 10, &statisticForAllRuns);
     } else {
-        spdlog::info("No known ruleset construction strategy specified, using 'dfs'");
+        spdlog::info(
+            "No known ruleset construction strategy specified, using 'dfs'");
         return createRuleset(gbm, info, BDDConfiguration::getPrintProgress());
     }
 }
@@ -111,7 +126,8 @@ int main(int argc, char *argv[]) {
     BDDConfiguration::parseArgs(argc, argv);
 
     std::string outputDirName = "output/" + getTimestamp();
-    if (!std::filesystem::exists("output")) std::filesystem::create_directories("output");
+    if (!std::filesystem::exists("output"))
+        std::filesystem::create_directories("output");
     std::filesystem::create_directories(outputDirName);
     BDDConfiguration::setOutputDirectory(outputDirName);
     std::filesystem::copy_file(configPath, outputDirName + "/config.yaml");
@@ -119,14 +135,13 @@ int main(int argc, char *argv[]) {
     setup_logger();
 
     RulesetInfo info = readClauselSetInfo(BDDConfiguration::getInputFilename());
-    DdManager *gbm = Cudd_Init(info.variableAmount, 0, CUDD_UNIQUE_SLOTS, CUDD_CACHE_SLOTS,
-                    0);
-    DdNode* bdd = createBDD(info, gbm);
+    DdManager *gbm = Cudd_Init(info.variableAmount, 0, CUDD_UNIQUE_SLOTS,
+                               CUDD_CACHE_SLOTS, 0);
+    DdNode *bdd = createBDD(info, gbm);
 
-//    print_dd(gbm, bdd);
+    //    print_dd(gbm, bdd);
     double mintermsCount = Cudd_CountMinterm(gbm, bdd, info.variableAmount);
-    spdlog::info("Minterm count: {0:f}",
-                 mintermsCount);
+    spdlog::info("Minterm count: {0:f}", mintermsCount);
 
     printMinterms(getMinterms(gbm, bdd, info.variableAmount, 50));
 
@@ -138,6 +153,6 @@ int main(int argc, char *argv[]) {
     Cudd_RecursiveDeref(gbm, bdd);
 
     int num_reference_nodes = Cudd_CheckZeroRef(gbm);
-    spdlog::info("#Nodes with non-zero reference count (should be 0): {0:d}",
-                 num_reference_nodes);
+    spdlog::debug("#Nodes with non-zero reference count (should be 0): {0:d}",
+                  num_reference_nodes);
 }

@@ -14,10 +14,10 @@ BDDBuildStatistic::BDDBuildStatistic(int totalItems, int outputInterval) {
     this->progressBar = ProgressBar(totalItems);
 }
 
-void BDDBuildStatistic::logCudd(DdManager *gbm, int itemsDone) {
+void BDDBuildStatistic::logCudd(DdManager *gbm) {
     memorySize.push_back(Cudd_ReadMemoryInUse(gbm));
 
-    if (itemsDone % outputInterval == 0 && BDDConfiguration::isOutputPlots()) {
+    if (this->totalItemsDone % outputInterval == 0 && BDDConfiguration::isOutputPlots()) {
         plt::plot(memorySize);
         plt::title("Used memory (in bytes)");
         plt::save(BDDConfiguration::getOutputDirectory() + "/memory.png");
@@ -25,17 +25,26 @@ void BDDBuildStatistic::logCudd(DdManager *gbm, int itemsDone) {
     }
 }
 
-void BDDBuildStatistic::logTime(int itemsDone, double totalTime_s) {
-    if (itemsDone % outputInterval == 0) {
-        double averageStepTime = ((double) std::reduce(stepTimes_ms.begin(), stepTimes_ms.end())) / stepTimes_ms.size();
-        spdlog::info("Current elapsed time: {}s | Average step time: {:.3f}ms", totalTime_s, averageStepTime);
+void BDDBuildStatistic::logTime(double totalTime_s) {
+    if (this->totalItemsDone % outputInterval == 0) {
+        double averageStepTime =
+            ((double)std::reduce(stepTimes_ms.begin(), stepTimes_ms.end())) /
+            stepTimes_ms.size();
+        spdlog::info("Current elapsed time: {}s | Average step time: {:.3f}ms",
+                     totalTime_s, averageStepTime);
     }
 }
 
-void BDDBuildStatistic::logStep(const FormulaInfo& formula, int itemsDone, int nodeCount, int stepTime_ms) {
-    progressBar.update(itemsDone, fmt::format("Node count: {} | Step time: {}ms", nodeCount, stepTime_ms));
+void BDDBuildStatistic::logStep(const FormulaInfo &formula, int itemsDone,
+                                int nodeCount, int stepTime_ms) {
+    this->totalItemsDone += itemsDone;
+    progressBar.update(this->totalItemsDone,
+                       fmt::format("Node count: {} | Step time: {}ms",
+                                   nodeCount, stepTime_ms));
 
-    int delta = stepNodeCount.empty() ? nodeCount : nodeCount - stepNodeCount.at(stepNodeCount.size()-1);
+    int delta = stepNodeCount.empty()
+                    ? nodeCount
+                    : nodeCount - stepNodeCount.at(stepNodeCount.size() - 1);
 
     this->stepNodeCount.push_back(nodeCount);
     this->stepTimes_ms.push_back(stepTime_ms);
@@ -45,14 +54,15 @@ void BDDBuildStatistic::logStep(const FormulaInfo& formula, int itemsDone, int n
     formTimes[formula.type].push_back(stepTime_ms);
     formNodeDelta[formula.type].push_back(delta);
 
-    if (itemsDone % outputInterval == 0 && BDDConfiguration::isOutputPlots()) {
+    if (this->totalItemsDone % outputInterval == 0 && BDDConfiguration::isOutputPlots()) {
         plt::figure_size(1200, 780);
         plt::plot(stepTimes_ms);
         plt::save(BDDConfiguration::getOutputDirectory() + "/step_times.png");
         plt::clf();
 
         plt::stem(nodeCountDelta, stepTimes_ms);
-        plt::save(BDDConfiguration::getOutputDirectory() + "/nodecountdelta_times.png");
+        plt::save(BDDConfiguration::getOutputDirectory() +
+                  "/nodecountdelta_times.png");
         plt::clf();
 
         plt::plot(stepNodeCount);
@@ -60,11 +70,14 @@ void BDDBuildStatistic::logStep(const FormulaInfo& formula, int itemsDone, int n
         plt::clf();
 
         plt::stem(stepNodeCount, stepTimes_ms);
-        plt::save(BDDConfiguration::getOutputDirectory() + "/nodecount_times.png");
+        plt::save(BDDConfiguration::getOutputDirectory() +
+                  "/nodecount_times.png");
         plt::clf();
 
         plt::figure_size(2000, 780);
-        int subplotAmount = !formNodeDelta[Form::AMO].empty() + !formNodeDelta[Form::CNF].empty() + !formNodeDelta[Form::DNF].empty();
+        int subplotAmount = !formNodeDelta[Form::AMO].empty() +
+                            !formNodeDelta[Form::CNF].empty() +
+                            !formNodeDelta[Form::DNF].empty();
         int currentSubplotAmount = 1;
         if (!formNodeDelta[Form::AMO].empty()) {
             plt::subplot(1, subplotAmount, currentSubplotAmount);
@@ -87,12 +100,12 @@ void BDDBuildStatistic::logStep(const FormulaInfo& formula, int itemsDone, int n
             currentSubplotAmount++;
         }
         if (currentSubplotAmount != 1) {
-            plt::save(BDDConfiguration::getOutputDirectory() + "/nodecountdelta_times_type_comparison.png");
+            plt::save(BDDConfiguration::getOutputDirectory() +
+                      "/nodecountdelta_times_type_comparison.png");
         }
         plt::close();
         plt::cla();
         plt::clf();
         plt::figure_size(1200, 780);
     }
-
 }

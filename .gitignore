@@ -9,3 +9,5 @@
 *.libs/
 cmake-build-debug/
 build/
+libs/
+.idea/

@@ -12,13 +12,15 @@
 #include <vector>
 
 class BDDBuildStatistic {
-public:
+  public:
     BDDBuildStatistic(int totalItems, int outputInterval);
-    void logStep(const FormulaInfo& formula, int itemsDone, int nodeCount, int stepTime_ms);
-    void logCudd(DdManager *gbm, int itemsDone);
-    void logTime(int itemsDone, double totalTime_s);
-private:
+    void logStep(const FormulaInfo &formula, int itemsDone, int nodeCount,
+                 int stepTime_ms);
+    void logCudd(DdManager *gbm);
+    void logTime(double totalTime_s);
 
+  private:
+    int totalItemsDone = 0;
     int outputInterval;
     ProgressBar progressBar;
     std::vector<int> nodeCountDelta;
@@ -32,5 +34,4 @@ private:
     std::vector<int> memorySize;
 };
 
-
-#endif //CODE_BDDBUILDSTATISTIC_H
+#endif // CODE_BDDBUILDSTATISTIC_H
