@@ -6,12 +6,23 @@
 #include "../stats/BDDBuildStatistic.h"
 #include "../utils/BDDConfiguration.h"
 #include "../utils/output_utils.h"
-#include "../utils/progress_bar.h"
-#include "matplotlibcpp.h"
 #include "spdlog/spdlog.h"
-#include <chrono>
 
-namespace chrono = std::chrono;
+
+DdNode* createFormulaBdd(DdManager *gbm, FormulaInfo info) {
+    if (info.type == Form::AMO) {
+        return createAMOFormulaFromInfo(gbm, info);
+    } else {
+        if (BDDConfiguration::getConstructionFormulaOrdering() == "dfs") {
+            return createNFFormulaFromInfo(gbm, info);
+        } else if (BDDConfiguration::getConstructionFormulaOrdering() ==
+                   "merge") {
+            return createNFFormulaMerge(gbm, info);
+        } else {
+            return createNFFormulaFromInfo(gbm, info);
+        }
+    }
+}
 
 DdNode *createAMOFormulaFromInfo(DdManager *gbm, FormulaInfo amoInfo) {
     DdNode *tmp, *tmpVar;

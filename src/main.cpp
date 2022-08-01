@@ -1,5 +1,5 @@
 
-#include "bdd_formulas/bdd_formulas.h"
+#include "bdd_formulas/bdd_rulesets.h"
 #include "bdd_formulas/static_ordering/formula_ordering.h"
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
@@ -39,7 +39,7 @@ void setup_logger() {
     auto combined_logger =
         std::make_shared<spdlog::logger>("log", begin(sinks), end(sinks));
 
-    combined_logger->flush_on(spdlog::level::info);
+    combined_logger->flush_on(spdlog::level::debug);
     spdlog::set_default_logger(combined_logger);
     //    spdlog::set_pattern("[%H:%M:%S:%e] [%l] [%s:%#] %v");
     spdlog::set_pattern("[%H:%M:%S:%e] [%l] %v");
@@ -101,12 +101,18 @@ DdNode *createBDD(RulesetInfo info, DdManager *gbm) {
         spdlog::info("Dynamic ordering disabled");
     }
 
+    spdlog::info("Using '{}' ruleset construction strategy",
+                 BDDConfiguration::getConstructionRulesetOrdering());
+
     if (BDDConfiguration::getConstructionRulesetOrdering() == "dfs") {
         return createRuleset(gbm, info, BDDConfiguration::getPrintProgress());
-    } else if (BDDConfiguration::getConstructionRulesetOrdering() == "merge") {
-        return createRulesetMerged(gbm, info,
+    } else if (BDDConfiguration::getConstructionRulesetOrdering() == "merge_parts") {
+        return createRulesetMergedParts(gbm, info,
                                    BDDConfiguration::getMergePartsAmount(),
                                    BDDConfiguration::getPrintProgress());
+    } else if (BDDConfiguration::getConstructionRulesetOrdering() == "merge_recursive") {
+        BDDBuildStatistic statisticForAllRuns(info.clauselAmount, 50);
+        return createRulesetMerged(gbm, info, 10, &statisticForAllRuns);
     } else {
         spdlog::info(
             "No known ruleset construction strategy specified, using 'dfs'");
