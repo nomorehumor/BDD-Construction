@@ -111,8 +111,8 @@ DdNode *createBDD(RulesetInfo info, DdManager *gbm) {
                                    BDDConfiguration::getMergePartsAmount(),
                                    BDDConfiguration::getPrintProgress());
     } else if (BDDConfiguration::getConstructionRulesetOrdering() == "merge_recursive") {
-        BDDBuildStatistic statisticForAllRuns(info.clauselAmount, 50);
-        return createRulesetMerged(gbm, info, 10, &statisticForAllRuns);
+
+        return createRulesetRecursively(gbm, info);
     } else {
         spdlog::info(
             "No known ruleset construction strategy specified, using 'dfs'");
