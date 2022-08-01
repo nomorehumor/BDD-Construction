@@ -12,5 +12,5 @@
 DdNode *createRuleset(DdManager *gbm, RulesetInfo setInfo, bool progress_output = false, BDDBuildStatistic *statistic = nullptr);
 DdNode *createRulesetMergedParts(DdManager *gbm, RulesetInfo setInfo,
                             int partsAmount, bool progressOutput);
-DdNode *createRulesetMerged(DdManager *gbm, RulesetInfo setInfo, int maxRecursionLevel, BDDBuildStatistic* progress);
+DdNode *createRulesetRecursively(DdManager *gbm, RulesetInfo setInfo);
 #endif // CODE_BDD_RULESETS_H

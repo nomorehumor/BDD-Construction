@@ -65,7 +65,9 @@ DdNode *createRulesetMergedParts(DdManager *gbm, RulesetInfo setInfo,
     return bdd;
 }
 
-DdNode *createRulesetMerged(DdManager *gbm, RulesetInfo setInfo, int maxRecursionLevel, BDDBuildStatistic* progress) {
+
+
+DdNode *createRulesetRecursion(DdManager *gbm, RulesetInfo setInfo, int maxRecursionLevel, BDDBuildStatistic* progress) {
     if (maxRecursionLevel <= 0 || setInfo.formulas.size() == 2) {
         return createRuleset(gbm, setInfo, true, progress);
     }
@@ -79,10 +81,14 @@ DdNode *createRulesetMerged(DdManager *gbm, RulesetInfo setInfo, int maxRecursio
         setInfo.formulas.end());
 
     spdlog::info("Dividing bdd, recursion levels left: {}", maxRecursionLevel - 1);
-    DdNode* bdd1 = createRulesetMerged(gbm, set1, maxRecursionLevel-1, progress);
-    DdNode* bdd2 = createRulesetMerged(gbm, set2, maxRecursionLevel-1, progress);
+    DdNode* bdd1 = createRulesetRecursion(gbm, set1, maxRecursionLevel-1, progress);
+    DdNode* bdd2 = createRulesetRecursion(gbm, set2, maxRecursionLevel-1, progress);
 
     spdlog::info("Merging...");
+    chrono::steady_clock::time_point merge_begin =
+        chrono::steady_clock::now();
+    chrono::steady_clock::time_point merge_end;
+
     DdNode *bdd;
     if (setInfo.type == Form::CNF) {
         bdd = Cudd_bddAnd(gbm, bdd1, bdd2);
@@ -93,6 +99,28 @@ DdNode *createRulesetMerged(DdManager *gbm, RulesetInfo setInfo, int maxRecursio
     Cudd_RecursiveDeref(gbm, bdd1);
     Cudd_RecursiveDeref(gbm, bdd2);
 
+    merge_end = chrono::steady_clock::now();
+    spdlog::info("Merged within {}ms", chrono::duration_cast<chrono::milliseconds>(
+                                           merge_end - merge_begin)
+                                           .count());
+
+    return bdd;
+}
+
+DdNode *createRulesetRecursively(DdManager *gbm, RulesetInfo setInfo) {
+    BDDBuildStatistic statisticForAllRuns(setInfo.clauselAmount, 50);
+    chrono::steady_clock::time_point process_begin =
+        chrono::steady_clock::now();
+    chrono::steady_clock::time_point process_end;
+
+    DdNode* bdd = createRulesetRecursion(gbm, setInfo, 10, &statisticForAllRuns);
+
+    process_end = chrono::steady_clock::now();
+
+    spdlog::info(
+        "Ruleset BDD generated in {0:d}s",
+        chrono::duration_cast<chrono::seconds>(process_end - process_begin)
+            .count());
     return bdd;
 }
 
