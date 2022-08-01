@@ -8,3 +8,5 @@
 *.deps/
 *.libs/
 cmake-build-debug/
+libs/
+.idea/
