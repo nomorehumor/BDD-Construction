@@ -14,25 +14,31 @@
 
 namespace plt = matplotlibcpp;
 
-void printVariableFrequencyStats(std::vector<int> orderedVariables, std::map<int,int> variableFrequencies) {
+void printVariableFrequencyStats(std::vector<int> orderedVariables,
+                                 std::map<int, int> variableFrequencies) {
     int totalAppears = 0;
     for (auto varPair : variableFrequencies) {
         totalAppears += varPair.second;
     }
     SPDLOG_INFO("======= Variable stats =======");
-    for (int i = 0; i < std::min(10, (int) orderedVariables.size()); i++) {
-        double percentage = ((double) variableFrequencies[orderedVariables[i]]) / ((double) totalAppears);
-        SPDLOG_INFO("{} | frequency {} : [{}%]", orderedVariables[i], variableFrequencies[orderedVariables[i]], percentage);
+    for (int i = 0; i < std::min(10, (int)orderedVariables.size()); i++) {
+        double percentage = ((double)variableFrequencies[orderedVariables[i]]) /
+                            ((double)totalAppears);
+        SPDLOG_INFO("{} | frequency {} : [{}%]", orderedVariables[i],
+                    variableFrequencies[orderedVariables[i]], percentage);
     }
 }
 
-void plotVariableFrequencyStats(std::vector<int> orderedVariables, std::map<int, int> variableFrequencies) {
+void plotVariableFrequencyStats(std::vector<int> orderedVariables,
+                                std::map<int, int> variableFrequencies) {
     spdlog::info("Plotting variable frequency stats");
     std::vector<int> frequencies;
     std::vector<int> top20Frequencies;
     for (int i = 0; i < orderedVariables.size(); i++) {
         frequencies.push_back(variableFrequencies[orderedVariables[i]]);
-        if (i < 20) top20Frequencies.push_back(variableFrequencies[orderedVariables[i]]);
+        if (i < 20)
+            top20Frequencies.push_back(
+                variableFrequencies[orderedVariables[i]]);
     }
 
     plt::figure_size(2500, 780);
@@ -68,35 +74,42 @@ void plotFormulaPartition(std::map<int, int> formulaIdVarMap, int varAmount) {
     plt::figure_size(1200, 780);
 }
 
-RulesetInfo orderRulesetRandom(RulesetInfo& setInfo) {
+RulesetInfo orderRulesetRandom(RulesetInfo &setInfo) {
 
     std::random_device rd;
-    auto rng = std::default_random_engine { rd() };
+    auto rng = std::default_random_engine{rd()};
     std::shuffle(std::begin(setInfo.formulas), std::end(setInfo.formulas), rng);
 
     return setInfo;
 }
 
-RulesetInfo orderRulesetFormulaSize(RulesetInfo& setInfo, bool ascending) {
+RulesetInfo orderRulesetFormulaSize(RulesetInfo &setInfo, bool ascending) {
     std::sort(setInfo.formulas.begin(), setInfo.formulas.end(),
-              [&](FormulaInfo info1, FormulaInfo info2) {return ascending ? info1.symbols.size() < info2.symbols.size()
-              : info1.symbols.size() > info2.symbols.size();});
+              [&](FormulaInfo info1, FormulaInfo info2) {
+                  return ascending
+                             ? info1.symbols.size() < info2.symbols.size()
+                             : info1.symbols.size() > info2.symbols.size();
+              });
     return setInfo;
 }
 
-RulesetInfo orderRulesetFrequentVariables(RulesetInfo& setInfo, bool countAllAppearances, bool skipFirst) {
+RulesetInfo orderRulesetFrequentVariables(RulesetInfo &setInfo,
+                                          bool countAllAppearances,
+                                          bool skipFirst) {
     std::map<int, int> variableFrequencyMap;
     std::map<int, int> formulaIdVarMap;
-//    std::map<int, std::vector<FormulaInfo>> formulaPartition;
+    //    std::map<int, std::vector<FormulaInfo>> formulaPartition;
 
     // Collect variables statistics
-    for (FormulaInfo& formulaInfo : setInfo.formulas) {
+    for (FormulaInfo &formulaInfo : setInfo.formulas) {
         std::map<int, bool> varAppearance;
         for (int symbol : formulaInfo.symbols) {
             if (symbol != 0) {
                 if (!countAllAppearances) {
-                    if (varAppearance[symbol]) continue;
-                    else varAppearance[symbol] = true;
+                    if (varAppearance[symbol])
+                        continue;
+                    else
+                        varAppearance[symbol] = true;
                 }
                 variableFrequencyMap[std::abs(symbol)]++;
             }
@@ -104,10 +117,12 @@ RulesetInfo orderRulesetFrequentVariables(RulesetInfo& setInfo, bool countAllApp
     }
 
     // Create formula partition
-    for (FormulaInfo& formula : setInfo.formulas) {
+    for (FormulaInfo &formula : setInfo.formulas) {
         for (int symbol : formula.symbols) {
             if (symbol != 0) {
-                if (formulaIdVarMap.find(formula.id) == formulaIdVarMap.end() || variableFrequencyMap[formulaIdVarMap[formula.id]] < variableFrequencyMap[std::abs(symbol)]) {
+                if (formulaIdVarMap.find(formula.id) == formulaIdVarMap.end() ||
+                    variableFrequencyMap[formulaIdVarMap[formula.id]] <
+                        variableFrequencyMap[std::abs(symbol)]) {
                     formulaIdVarMap[formula.id] = std::abs(symbol);
                 }
             }
@@ -120,7 +135,11 @@ RulesetInfo orderRulesetFrequentVariables(RulesetInfo& setInfo, bool countAllApp
         varsSorted.push_back(i);
     }
     // Sort formulas
-    std::sort(varsSorted.begin(), varsSorted.end(), [&](int variable1, int variable2) { return variableFrequencyMap[variable1] > variableFrequencyMap[variable2];});
+    std::sort(varsSorted.begin(), varsSorted.end(),
+              [&](int variable1, int variable2) {
+                  return variableFrequencyMap[variable1] >
+                         variableFrequencyMap[variable2];
+              });
 
     if (skipFirst) {
         variableFrequencyMap[varsSorted[0]] = 0;
@@ -132,13 +151,15 @@ RulesetInfo orderRulesetFrequentVariables(RulesetInfo& setInfo, bool countAllApp
     printVariableFrequencyStats(varsSorted, variableFrequencyMap);
     if (BDDConfiguration::isOutputPlots()) {
         plotVariableFrequencyStats(varsSorted, variableFrequencyMap);
-//        plotFormulaPartition(formulaIdVarMap, setInfo.variableAmount);
+        //        plotFormulaPartition(formulaIdVarMap, setInfo.variableAmount);
     }
 
     std::vector<FormulaInfo> formulas = setInfo.formulas;
-    std::sort(formulas.begin(), formulas.end(), [&] (FormulaInfo& a, FormulaInfo& b) {
-        return variableFrequencyMap[formulaIdVarMap[a.id]] > variableFrequencyMap[formulaIdVarMap[b.id]];
-    });
+    std::sort(formulas.begin(), formulas.end(),
+              [&](FormulaInfo &a, FormulaInfo &b) {
+                  return variableFrequencyMap[formulaIdVarMap[a.id]] >
+                         variableFrequencyMap[formulaIdVarMap[b.id]];
+              });
 
     RulesetInfo newSetInfo = setInfo;
     newSetInfo.formulas = formulas;
@@ -147,22 +168,27 @@ RulesetInfo orderRulesetFrequentVariables(RulesetInfo& setInfo, bool countAllApp
 
 RulesetInfo orderRulesetFORCE(RulesetInfo setInfo) {
     FORCEPlacer placer(setInfo.formulas);
-    setInfo.formulas = placer.orderFormulasWithPlacement(setInfo.formulas, placer.findPlacement(true));
+    setInfo.formulas = placer.orderFormulasWithPlacement(
+        setInfo.formulas, placer.findPlacement(true));
     return setInfo;
 }
 
-RulesetInfo orderClausesBottomUp(RulesetInfo& setInfo) {
+RulesetInfo orderClausesBottomUp(RulesetInfo &setInfo) {
     RulesetInfo orderedRuleset = setInfo;
     orderedRuleset.formulas = {};
 
     for (FormulaInfo formula : setInfo.formulas) {
         std::vector<int> newSymbols;
         auto firstInClause = formula.symbols.begin();
-        for (auto it = formula.symbols.begin() + 1; it < formula.symbols.end(); it++) {
+        for (auto it = formula.symbols.begin() + 1; it < formula.symbols.end();
+             it++) {
             if (*it == 0 && *firstInClause != 0) {
                 std::vector<int> clause(firstInClause, it);
-                std::sort(clause.begin(), clause.end(), [](int a, int b) { return std::abs(a) > std::abs(b); });
-                newSymbols.insert(newSymbols.end(), clause.begin(), clause.end());
+                std::sort(clause.begin(), clause.end(), [](int a, int b) {
+                    return std::abs(a) > std::abs(b);
+                });
+                newSymbols.insert(newSymbols.end(), clause.begin(),
+                                  clause.end());
                 newSymbols.push_back(0);
                 firstInClause = it + 1;
             }
@@ -186,11 +212,12 @@ RulesetInfo orderClausesFORCE(RulesetInfo setInfo) {
     ProgressBar bar(setInfo.formulas.size());
     int i = 1;
     spdlog::info("Ordering clauses with FORCE");
-    for (FormulaInfo& formula : setInfo.formulas) {
+    for (FormulaInfo &formula : setInfo.formulas) {
         if (formula.clauses.size() > 2) {
             FORCEPlacer placer(formula);
             bar.update(i);
-            formulas.push_back(placer.orderClausesWithPlacement(formula, placer.findPlacement()));
+            formulas.push_back(placer.orderClausesWithPlacement(
+                formula, placer.findPlacement()));
         } else {
             formulas.push_back(formula);
         }
@@ -202,7 +229,8 @@ RulesetInfo orderClausesFORCE(RulesetInfo setInfo) {
     return setInfo;
 }
 
-RulesetInfo orderRuleset(RulesetInfo& setInfo, std::string setStrategy, std::string clauseStrategy) {
+RulesetInfo orderRuleset(RulesetInfo &setInfo, std::string setStrategy,
+                         std::string clauseStrategy) {
     RulesetInfo inputSet = setInfo;
 
     spdlog::info("Using '{}' clause static ordering heuristic", clauseStrategy);
@@ -210,7 +238,8 @@ RulesetInfo orderRuleset(RulesetInfo& setInfo, std::string setStrategy, std::str
         inputSet = orderClausesBottomUp(setInfo);
     } else if (clauseStrategy == "force") {
         inputSet = orderClausesFORCE(setInfo);
-    } else spdlog::info("Clause ordering is disabled");
+    } else
+        spdlog::info("Clause ordering is disabled");
 
     spdlog::info("Using '{}' ruleset static ordering heuristic", setStrategy);
     if (setStrategy == "none") {
