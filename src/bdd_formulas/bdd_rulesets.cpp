@@ -84,7 +84,7 @@ DdNode *createRulesetRecursion(DdManager *gbm, RulesetInfo setInfo, int maxRecur
     DdNode* bdd1 = createRulesetRecursion(gbm, set1, maxRecursionLevel-1, progress);
     DdNode* bdd2 = createRulesetRecursion(gbm, set2, maxRecursionLevel-1, progress);
 
-    spdlog::info("Merging...");
+    spdlog::info("Merging {} and {} clauses", set1.formulas.size(), set2.formulas.size());
     chrono::steady_clock::time_point merge_begin =
         chrono::steady_clock::now();
     chrono::steady_clock::time_point merge_end;
