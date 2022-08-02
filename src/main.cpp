@@ -11,7 +11,10 @@
 #include "utils/output_utils.h"
 #include <climits>
 #include <filesystem>
+#include <future>
 #include <iomanip>
+
+namespace chrono = std::chrono;
 
 std::string getTimestamp() {
     std::time_t now = time(nullptr);
@@ -89,11 +92,11 @@ void printMinterms(std::vector<std::vector<bool>> minterms) {
 }
 
 DdNode *createBDD(RulesetInfo info, DdManager *gbm) {
-    printRulesetStats(info);
 
     info = orderRuleset(info, BDDConfiguration::getOrderingStrategy(),
                         BDDConfiguration::getClauseOrderingStrategy());
 
+    // Dynamic reordering
     if (BDDConfiguration::isEnableDynamicOrdering()) {
         Cudd_AutodynEnable(gbm, CUDD_REORDER_SIFT);
         spdlog::info("Dynamic ordering enabled");
@@ -104,6 +107,7 @@ DdNode *createBDD(RulesetInfo info, DdManager *gbm) {
     spdlog::info("Using '{}' ruleset construction strategy",
                  BDDConfiguration::getConstructionRulesetOrdering());
 
+    // Construct BDD
     if (BDDConfiguration::getConstructionRulesetOrdering() == "dfs") {
         return createRuleset(gbm, info, BDDConfiguration::getPrintProgress());
     } else if (BDDConfiguration::getConstructionRulesetOrdering() == "merge_parts") {
@@ -118,6 +122,11 @@ DdNode *createBDD(RulesetInfo info, DdManager *gbm) {
             "No known ruleset construction strategy specified, using 'dfs'");
         return createRuleset(gbm, info, BDDConfiguration::getPrintProgress());
     }
+}
+
+void createBddInThread(RulesetInfo info, DdManager* gbm, std::atomic<bool>* done, DdNode* bdd) {
+    bdd = createBDD(info, gbm);
+    *done = true;
 }
 
 int main(int argc, char *argv[]) {
@@ -135,24 +144,31 @@ int main(int argc, char *argv[]) {
     setup_logger();
 
     RulesetInfo info = readClauselSetInfo(BDDConfiguration::getInputFilename());
+    printRulesetStats(info);
+
     DdManager *gbm = Cudd_Init(info.variableAmount, 0, CUDD_UNIQUE_SLOTS,
                                CUDD_CACHE_SLOTS, 0);
-    DdNode *bdd = createBDD(info, gbm);
+    DdNode* bdd;
+    std::atomic<bool> constructionDone = false;
+    std::thread bddConstruction(&createBddInThread, info, gbm, &constructionDone, bdd);
+    chrono::steady_clock::time_point process_begin =
+        chrono::steady_clock::now();
 
-    //    print_dd(gbm, bdd);
+    while(!constructionDone) {
+        if (chrono::duration_cast<chrono::minutes>(chrono::steady_clock::now() - process_begin).count() >= 5) {
+            spdlog::warn("The task has been executing for over 5 minutes, stopping now");
+            exit(EXIT_FAILURE);
+        }
+    }
+
     double mintermsCount = Cudd_CountMinterm(gbm, bdd, info.variableAmount);
     spdlog::info("Minterm count: {0:f}", mintermsCount);
 
     printMinterms(getMinterms(gbm, bdd, info.variableAmount, 50));
 
-    //    char out_filename[30];
-    //    sprintf(out_filename, "bdd.dot");
-    //    bdd = Cudd_BddToAdd(gbm, bdd);
-    //    write_dd(gbm, bdd, out_filename);
-
     Cudd_RecursiveDeref(gbm, bdd);
-
     int num_reference_nodes = Cudd_CheckZeroRef(gbm);
     spdlog::debug("#Nodes with non-zero reference count (should be 0): {0:d}",
                   num_reference_nodes);
+    return 0;
 }
