@@ -2,7 +2,7 @@ filename: "C:\\dev\\Bachelor\\merlin-formulas\\wingas\\merlin-clauseset420509740
 # "C:\\dev\\Bachelor\\test-formulas\\test_amo.txt"
 output:
   print_progress: true
-  output_plots: true
+  output_plots: false
 
 ordering:
   set:
