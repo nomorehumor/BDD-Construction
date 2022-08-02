@@ -1,15 +1,18 @@
 //
 // Created by Maxim.Popov on 22.06.2022.
 //
-#include <vector>
-#include <iostream>
+#include "file_utils.h"
+#include "spdlog/spdlog.h"
+#include <cstdio>
 #include <cstring>
 #include <cudd.h>
-#include "file_utils.h"
-#include <cstdio>
-
+#include <iostream>
+#include <vector>
 
 RulesetInfo readClauselSetInfo(std::string filename, bool convertAmo) {
+
+    spdlog::info("Reading ruleset from {}", filename);
+
     char filenameChar[filename.size()];
     strcpy(filenameChar, filename.c_str());
     FILE* file = fopen(filenameChar, "r");
