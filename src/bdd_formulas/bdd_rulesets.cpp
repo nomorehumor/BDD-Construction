@@ -118,8 +118,8 @@ DdNode *createRulesetRecursively(DdManager *gbm, RulesetInfo setInfo) {
     process_end = chrono::steady_clock::now();
 
     spdlog::info(
-        "Ruleset BDD generated in {0:d}s",
-        chrono::duration_cast<chrono::seconds>(process_end - process_begin)
+        "Ruleset BDD generated in {0:d}ms",
+        chrono::duration_cast<chrono::milliseconds>(process_end - process_begin)
             .count());
     return bdd;
 }
@@ -173,8 +173,8 @@ DdNode *createRuleset(DdManager *gbm, RulesetInfo setInfo, bool progress_output,
     }
 
     spdlog::info(
-        "BDD generated in {0:d}s",
-        chrono::duration_cast<chrono::seconds>(iteration_end - process_begin)
+        "BDD generated in {0:d}ms",
+        chrono::duration_cast<chrono::milliseconds>(iteration_end - process_begin)
             .count());
 
     return bdd;
