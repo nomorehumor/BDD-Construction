@@ -1,16 +1,30 @@
 import sys
-import pandas as pd
 import os
 import re
 import glob
 
+
+def df_to_csv(df: list, filename: str):
+    if len(df) == 0:
+        print("Dataframe is empty")
+        return
+
+    with open(filename, "w") as f:
+        header = ",".join(df[0].keys())
+        f.write(header + "\n")
+        for row in sorted(df, key=lambda item: item["name"]):
+            f.write(",".join(row.values()) + "\n")
+
 if __name__ == '__main__':
-    if len(sys.argv) > 1:
+    if len(sys.argv) >= 3:
         output_folder = sys.argv[1]
+        results_file = sys.argv[2]
     else:
-        output_folder = "C:\dev\Bachelor\code\cmake-build-debug\output"
-    
-    df = pd.DataFrame(columns=["name", "time"])
+        output_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), "output")
+        results_file = "results.csv"
+
+    # df = {pd.DataFrame(columns=["name", "time"])}
+    df = []
     run_folders = os.listdir(output_folder)
     for run_folder in run_folders:
         input_file = ""
@@ -27,11 +41,11 @@ if __name__ == '__main__':
                 for line in reversed(lines):
                     time_line = re.search(r'(Ruleset BDD generated in | BDD generated in)', line)
                     if time_line:
-                        time_ms = re.search(r'\d*ms', line).group(1)
+                        time_ms = re.search(r'\d*ms', line).group(0)
                         break
 
-        df.append({"name": input_file, "time": time_ms})
+        df.append({"name": input_file, "time": str(time_ms)})
 
-    df.to_csv("results.csv")
+    df_to_csv(df, results_file)
 
 
