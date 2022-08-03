@@ -33,7 +33,7 @@ void setup_logger() {
     std::stringstream transTime;
     transTime << std::put_time(ltm, "%y.%m.%d-%H.%M.%S");
     std::string log_name = fmt::format(
-        "{}/{}.log", BDDConfiguration::getOutputDirectory(), getTimestamp());
+        "{}/{}.log", BDDConfiguration::getOutputDirectory(), "run");
 
     std::vector<spdlog::sink_ptr> sinks;
     sinks.push_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
