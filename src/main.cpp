@@ -1,6 +1,8 @@
 
 #include "bdd_formulas/bdd_rulesets.h"
-#include "bdd_formulas/static_ordering/formula_ordering.h"
+#include "bdd_formulas/static_ordering/clause_ordering.h"
+#include "bdd_formulas/static_ordering/ruleset_ordering.h"
+#include "bdd_formulas/static_ordering/variable_ordering.h"
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/sinks/stdout_sinks.h"
@@ -48,57 +50,65 @@ void setup_logger() {
     spdlog::set_pattern("[%H:%M:%S:%e] [%l] %v");
 }
 
-void printRulesetStats(RulesetInfo &setInfo) {
-    spdlog::info("======= Ruleset info =======");
-    spdlog::info("Variables amount: {0:d} | Formulas amount: {1:d}",
-                 setInfo.variableAmount, setInfo.clauselAmount);
+RulesetInfo orderRuleset(DdManager* gbm, RulesetInfo &setInfo, std::string setStrategy,
+                         std::string clauseStrategy, std::string variableStrategy) {
+    RulesetInfo reorderedSet = setInfo;
 
-    int amoFormulasAmount = 0;
-    int dnfFormulasAmount = 0;
-    int cnfFormulasAmount = 0;
-    int unknownFormulaTypeAmount = 0;
-    for (FormulaInfo &info : setInfo.formulas) {
-        switch (info.type) {
-        case Form::AMO:
-            amoFormulasAmount++;
-            break;
-        case Form::DNF:
-            dnfFormulasAmount++;
-            break;
-        case Form::CNF:
-            cnfFormulasAmount++;
-            break;
-        default:
-            unknownFormulaTypeAmount++;
+    spdlog::info("Using '{}' clause static ordering heuristic", clauseStrategy);
+    if (clauseStrategy != "none") {
+        if (clauseStrategy == "bottom_up") {
+            reorderedSet = orderClausesBottomUp(setInfo);
+        } else if (clauseStrategy == "force") {
+            reorderedSet = orderClausesFORCE(setInfo);
+        } else
+            spdlog::warn("Unknown clause ordering strategy, using 'none' instead");
+    }
+
+    spdlog::info("Using '{}' ruleset static ordering heuristic", setStrategy);
+    if (setStrategy != "none") {
+        if (setStrategy == "size") {
+            reorderedSet = orderRulesetFormulaSize(reorderedSet,
+                                           BDDConfiguration::isAscending());
+        } else if (setStrategy == "random") {
+            reorderedSet = orderRulesetRandom(reorderedSet);
+        } else if (setStrategy == "var_frequency") {
+            reorderedSet = orderRulesetFrequentVariables(
+                reorderedSet, BDDConfiguration::isCountAllAppearances(),
+                BDDConfiguration::isSkipMostFrequentVar());
+        } else if (setStrategy == "force") {
+            reorderedSet = orderRulesetFORCE(reorderedSet);
+        } else {
+            spdlog::warn("Unknown ruleset ordering strategy, using 'none' instead");
         }
     }
-    spdlog::info("DNF: {0:d}", dnfFormulasAmount);
-    spdlog::info("CNF: {0:d}", cnfFormulasAmount);
-    spdlog::info("AMO: {0:d}", amoFormulasAmount);
-    spdlog::info("Unknown type: {0:d}", unknownFormulaTypeAmount);
-}
 
-void printMinterms(std::vector<std::vector<bool>> minterms) {
-    if (minterms.empty())
-        spdlog::warn("No minterms for this BDD");
-    for (int i = 0; i < minterms.size(); i++) {
-        std::string mintermRepr = "";
-
-        for (int j = 0; j < minterms[i].size(); j++) {
-            mintermRepr += std::to_string(minterms[i][j]);
+    spdlog::info("Using '{}' variable static ordering heuristic", variableStrategy) ;
+    if (variableStrategy != "none") {
+        std::vector<int> variableOrdering;
+        if (variableStrategy == "var_frequency") {
+            variableOrdering = orderVariablesByFrequency(
+                reorderedSet, BDDConfiguration::isSkipMostFrequentVar(), BDDConfiguration::isCountAllAppearances());
+        } else {
+            spdlog::warn("Unknown variable ordering strategy, using 'none' instead");
+            return reorderedSet;
         }
-        spdlog::info("#{0:d} {1}", i, mintermRepr);
+        std::for_each(variableOrdering.begin(), variableOrdering.end(), [&](int& var) { var--; });
+        int* variableOrderingArray = &variableOrdering[0];
+        Cudd_ShuffleHeap(gbm, variableOrderingArray);
     }
+
+    return reorderedSet;
 }
 
 DdNode *createBDD(RulesetInfo info, DdManager *gbm) {
 
-    info = orderRuleset(info, BDDConfiguration::getOrderingStrategy(),
-                        BDDConfiguration::getClauseOrderingStrategy());
+    info = orderRuleset(gbm, info, BDDConfiguration::getRulesetOrderingStrategy(),
+                        BDDConfiguration::getClauseOrderingStrategy(), BDDConfiguration::getVariableOrdering());
 
     // Dynamic reordering
     if (BDDConfiguration::isEnableDynamicOrdering()) {
         Cudd_AutodynEnable(gbm, CUDD_REORDER_SIFT);
+        Cudd_ReduceHeap(gbm, CUDD_REORDER_SYMM_SIFT, 3000);
         spdlog::info("Dynamic ordering enabled");
     } else {
         spdlog::info("Dynamic ordering disabled");
@@ -115,7 +125,6 @@ DdNode *createBDD(RulesetInfo info, DdManager *gbm) {
                                    BDDConfiguration::getMergePartsAmount(),
                                    BDDConfiguration::getPrintProgress());
     } else if (BDDConfiguration::getConstructionRulesetOrdering() == "merge_recursive") {
-
         return createRulesetRecursively(gbm, info);
     } else {
         spdlog::info(
@@ -124,8 +133,8 @@ DdNode *createBDD(RulesetInfo info, DdManager *gbm) {
     }
 }
 
-void createBddInThread(RulesetInfo info, DdManager* gbm, std::atomic<bool>* done, DdNode* bdd) {
-    bdd = createBDD(info, gbm);
+void createBddInThread(RulesetInfo info, DdManager* gbm, std::atomic<bool>* done, DdNode** bdd) {
+    *bdd = createBDD(info, gbm);
     *done = true;
 }
 
@@ -139,7 +148,8 @@ int main(int argc, char *argv[]) {
         std::filesystem::create_directories("output");
     std::filesystem::create_directories(outputDirName);
     BDDConfiguration::setOutputDirectory(outputDirName);
-    std::filesystem::copy_file(configPath, outputDirName + "/config.yaml");
+
+    std::filesystem::copy_file(configPath, BDDConfiguration::getOutputDirectory() + "/config.yaml");
 
     setup_logger();
 
@@ -150,7 +160,7 @@ int main(int argc, char *argv[]) {
                                CUDD_CACHE_SLOTS, 0);
     DdNode* bdd;
     std::atomic<bool> constructionDone = false;
-    std::thread bddConstruction(&createBddInThread, info, gbm, &constructionDone, bdd);
+    std::thread bddConstruction(&createBddInThread, info, gbm, &constructionDone, &bdd);
     chrono::steady_clock::time_point process_begin =
         chrono::steady_clock::now();
 

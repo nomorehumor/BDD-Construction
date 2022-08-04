@@ -2,10 +2,9 @@
 // Created by Maxim.Popov on 28.07.2022.
 //
 
-#include "output_utils.h"
-#include <cudd.h>
 #include <valarray>
 #include <vector>
+#include <cudd.h>
 
 std::vector<std::vector<bool>> getMinterms(DdManager *gbm, DdNode *bdd,
                                            int numVars, int maxAmount,
@@ -24,10 +23,6 @@ std::vector<std::vector<bool>> getMinterms(DdManager *gbm, DdNode *bdd,
            minterms.size() < maxAmount) {
         DdNode *minterm =
             Cudd_bddPickOneMinterm(gbm, currentNode, vars, numVars);
-
-        if (output) {
-            print_dd(gbm, minterm);
-        }
 
         Cudd_Ref(minterm);
         std::vector<bool> mintermSolution;

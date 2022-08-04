@@ -32,3 +32,46 @@ void write_dd (DdManager *gbm, DdNode *dd, char* filename)
     free(ddnodearray);
     fclose (outfile); // close the file */
 }
+
+void printMinterms(std::vector<std::vector<bool>> minterms) {
+    if (minterms.empty())
+        spdlog::warn("No minterms for this BDD");
+    for (int i = 0; i < minterms.size(); i++) {
+        std::string mintermRepr = "";
+
+        for (int j = 0; j < minterms[i].size(); j++) {
+            mintermRepr += std::to_string(minterms[i][j]);
+        }
+        spdlog::info("#{0:d} {1}", i, mintermRepr);
+    }
+}
+
+void printRulesetStats(RulesetInfo &setInfo) {
+    spdlog::info("======= Ruleset info =======");
+    spdlog::info("Variables amount: {0:d} | Formulas amount: {1:d}",
+                 setInfo.variableAmount, setInfo.clauselAmount);
+
+    int amoFormulasAmount = 0;
+    int dnfFormulasAmount = 0;
+    int cnfFormulasAmount = 0;
+    int unknownFormulaTypeAmount = 0;
+    for (FormulaInfo &info : setInfo.formulas) {
+        switch (info.type) {
+        case Form::AMO:
+            amoFormulasAmount++;
+            break;
+        case Form::DNF:
+            dnfFormulasAmount++;
+            break;
+        case Form::CNF:
+            cnfFormulasAmount++;
+            break;
+        default:
+            unknownFormulaTypeAmount++;
+        }
+    }
+    spdlog::info("DNF: {0:d}", dnfFormulasAmount);
+    spdlog::info("CNF: {0:d}", cnfFormulasAmount);
+    spdlog::info("AMO: {0:d}", amoFormulasAmount);
+    spdlog::info("Unknown type: {0:d}", unknownFormulaTypeAmount);
+}

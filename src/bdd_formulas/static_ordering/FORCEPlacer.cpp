@@ -1,9 +1,10 @@
 //
-// Created by Maxim.Popov on 20.07.2022.
+// Created by Maxim.Popov on 03.08.2022.
 //
 
 #include "FORCEPlacer.h"
 #include "../../utils/progress_bar.h"
+#include "hypergraph.h"
 #include "spdlog/spdlog.h"
 #include <climits>
 #include <cmath>
@@ -47,7 +48,7 @@ FORCEPlacer::FORCEPlacer(FormulaInfo &formula) {
 
 std::vector<FormulaInfo>
 FORCEPlacer::orderFormulasWithPlacement(std::vector<FormulaInfo> formulas,
-                                        std::vector<HGNode> placement) {
+                                   std::vector<HGNode> placement) {
     std::vector<FormulaInfo> orderedFormulas;
     for (int i = 0; i < placement.size(); i++) {
         FormulaInfo nodeFormula = *std::find_if(
