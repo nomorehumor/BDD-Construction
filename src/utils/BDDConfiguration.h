@@ -71,11 +71,12 @@ public:
         outputPlots = config["output"]["output_plots"].as<bool>();
         skipMostFrequentVar = config["ordering"]["set"]["skip_most_frequent_var"].as<bool>();
         printProgress = config["output"]["print_progress"].as<bool>();
-        orderingStrategy = config["ordering"]["set"]["strategy"].as<std::string>();
+        rulesetOrderingStrategy = config["ordering"]["set"]["strategy"].as<std::string>();
         ascending = config["ordering"]["set"]["ascending"].as<bool>();
         countAllAppearances = config["ordering"]["set"]["count_all_appearances"].as<bool>();
         enableDynamicOrdering = config["ordering"]["enable_dynamic_ordering"].as<bool>();
         clauseOrderingStrategy = config["ordering"]["clause"]["strategy"].as<std::string>();
+        variableOrdering = config["ordering"]["variable"]["strategy"].as<std::string>();
         constructionFormulaOrdering = config["ordering"]["construction"]["formula"].as<std::string>();
         constructionRulesetOrdering = config["ordering"]["construction"]["ruleset"].as<std::string>();
         mergeParts = config["ordering"]["construction"]["parts_amount"].as<int>();
@@ -84,7 +85,7 @@ public:
     static void parseArgs(int argc, char *argv[]) {
         InputParser parser(argc, argv);
         if (parser.cmdArgumentExists("--ordering")) {
-            orderingStrategy = parser.getCmdArgument("--ordering");
+            rulesetOrderingStrategy = parser.getCmdArgument("--ordering");
         }
         if (parser.cmdArgumentExists("--topological")) {
             constructionFormulaOrdering = parser.getCmdArgument("--topological");
@@ -117,8 +118,8 @@ public:
         return enableDynamicOrdering;
     }
 
-    static std::string getOrderingStrategy() {
-        return orderingStrategy;
+    static std::string getRulesetOrderingStrategy() {
+        return rulesetOrderingStrategy;
     }
 
     static bool isAscending() {
@@ -153,6 +154,10 @@ public:
         outputDirectory = newOutputDirectory;
     }
 
+    static std::string getVariableOrdering() {
+        return variableOrdering;
+    }
+
     BDDConfiguration(BDDConfiguration const&) = delete;
     void operator=(BDDConfiguration const&) = delete;
 
@@ -162,7 +167,7 @@ protected:
     inline static bool outputPlots = true;
     inline static bool printProgress = true;
     inline static bool enableDynamicOrdering = true;
-    inline static std::string orderingStrategy = "none";
+    inline static std::string rulesetOrderingStrategy = "none";
     inline static bool ascending = true; // for 'size' ordering
     inline static bool skipMostFrequentVar = true; // for 'var_frequency' ordering
     inline static bool countAllAppearances = true; // for 'var_frequency' ordering
@@ -171,6 +176,7 @@ protected:
     inline static std::string constructionRulesetOrdering = "merge";
     inline static int mergeParts = 10;
     inline static std::string outputDirectory = "output";
+    inline static std::string variableOrdering = "none";
 
     BDDConfiguration() {}
     inline static BDDConfiguration* configuration_ = nullptr;
