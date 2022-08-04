@@ -88,6 +88,8 @@ RulesetInfo orderRuleset(DdManager* gbm, RulesetInfo &setInfo, std::string setSt
         if (variableStrategy == "var_frequency") {
             variableOrdering = orderVariablesByFrequency(
                 reorderedSet, BDDConfiguration::isSkipMostFrequentVar(), BDDConfiguration::isCountAllAppearances());
+        } else if ( variableStrategy == "force") {
+            variableOrdering = orderVariablesFORCE(reorderedSet);
         } else {
             spdlog::warn("Unknown variable ordering strategy, using 'none' instead");
             return reorderedSet;

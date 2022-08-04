@@ -13,12 +13,14 @@
 
 class FORCEPlacer {
   public:
+    FORCEPlacer(RulesetInfo &rulesetInfo);
     FORCEPlacer(std::vector<FormulaInfo>& formulas);
     FORCEPlacer(FormulaInfo &formula);
 
     int calculateGraphTotalSpan();
     std::vector<FormulaInfo> orderFormulasWithPlacement(std::vector<FormulaInfo> formulas, std::vector<HGNode> placement);
     FormulaInfo orderClausesWithPlacement(FormulaInfo formula, std::vector<HGNode> placement);
+    std::vector<int> orderVariablesWithPlacement(std::vector<HGNode> placement);
     std::vector<HGNode> findPlacement(bool output = false);
   protected:
     void createGraphEdgesFromNodes();

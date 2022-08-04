@@ -20,7 +20,29 @@ void FORCEPlacer::createGraphEdgesFromNodes() {
     }
 }
 
-FORCEPlacer::FORCEPlacer(std::vector<FormulaInfo> &formulas) {
+FORCEPlacer::FORCEPlacer(RulesetInfo& rulesetInfo) {
+
+    for (int i = 1; i <= rulesetInfo.variableAmount; i++) {
+        HGNode node{i};
+        graph.nodes.push_back(node);
+    }
+
+    for (FormulaInfo& formula : rulesetInfo.formulas) {
+        for (auto clause : formula.clauses) {
+            std::set<HGNode> nodesInEdge;
+            for (int var : clause) {
+                nodesInEdge.insert(graph.nodes.at(std::abs(var)-1));
+            }
+            HGEdge edge{(int)graph.edges.size(), nodesInEdge};
+            for (HGNode node : nodesInEdge) {
+                graph.nodeEdges[node].insert(edge);
+            }
+            graph.edges.insert(edge);
+        }
+    }
+}
+
+FORCEPlacer::FORCEPlacer(std::vector<FormulaInfo>& formulas) {
     for (FormulaInfo &formula : formulas) {
         HGNode node{formula.id};
         graph.nodes.push_back(node);
@@ -78,6 +100,14 @@ FORCEPlacer::orderClausesWithPlacement(FormulaInfo formula,
     return orderedFormula;
 }
 
+std::vector<int> FORCEPlacer::orderVariablesWithPlacement(std::vector<HGNode> placement) {
+    std::vector<int> orderedVariables;
+    for (HGNode node : placement) {
+        orderedVariables.push_back(node.id);
+    }
+    return orderedVariables;
+}
+
 int FORCEPlacer::calculateGraphTotalSpan() {
     int totalSpan = 0;
     for (HGEdge edge : graph.edges) {
@@ -105,20 +135,20 @@ std::vector<HGNode> FORCEPlacer::findPlacement(bool output) {
 
     if (output)
         spdlog::info("Finding placement with FORCE");
-    int totalSpan = calculateGraphTotalSpan();
-    int newTotalSpan = totalSpan;
+
+    std::vector<int> lastTotalSpans = {calculateGraphTotalSpan()};
     for (int i = 0;
-         i < iterationsNum || newTotalSpan - totalSpan > spanEpsilon ||
-         newTotalSpan < totalSpan;
+         i < iterationsNum
+         && (lastTotalSpans.size() < 6 || lastTotalSpans[lastTotalSpans.size()-1] != lastTotalSpans[lastTotalSpans.size()-6]);
          i++) {
-        totalSpan = newTotalSpan;
+
         if (output) {
             if (i < iterationsNum) {
-                bar.update(i + 1, fmt::format("Total span: {}", totalSpan));
+                bar.update(i + 1, fmt::format("Total span: {}", lastTotalSpans[lastTotalSpans.size()-1]));
             } else {
                 bar.update(i + 1,
                            fmt::format("(Continuing iterations) Total span: {}",
-                                       totalSpan));
+                                       lastTotalSpans[lastTotalSpans.size()-1]));
             }
         }
 
@@ -154,7 +184,7 @@ std::vector<HGNode> FORCEPlacer::findPlacement(bool output) {
                       return newIndices[node1] < newIndices[node2];
                   });
 
-        newTotalSpan = calculateGraphTotalSpan();
+        lastTotalSpans.push_back(calculateGraphTotalSpan());
     }
     return graph.nodes;
 }

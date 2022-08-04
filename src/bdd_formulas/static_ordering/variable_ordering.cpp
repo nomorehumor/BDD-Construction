@@ -3,7 +3,7 @@
 //
 
 #include "variable_ordering.h"
-
+#include "FORCEPlacer.h"
 
 std::vector<int> orderVariablesByFrequency(RulesetInfo& setInfo, bool skipFirst, bool countAllAppearances, std::map<int, int> *variableFrequencyMap) {
 
@@ -47,4 +47,9 @@ std::vector<int> orderVariablesByFrequency(RulesetInfo& setInfo, bool skipFirst,
     }
 
     return varsSorted;
+}
+
+std::vector<int> orderVariablesFORCE(RulesetInfo setInfo) {
+    FORCEPlacer placer(setInfo);
+    return placer.orderVariablesWithPlacement(placer.findPlacement(true));
 }
