@@ -18,7 +18,6 @@ class BDDBuildStatistic {
                  int stepTime_ms);
     void logCudd(DdManager *gbm);
     void logTime(double totalTime_s);
-
   private:
     int totalItemsDone = 0;
     int outputInterval;
