@@ -1,5 +1,5 @@
-filename: "C:\\dev\\Bachelor\\merlin-formulas\\wingas\\merlin-clauseset420509740828757424.txt"
-# "C:\\dev\\Bachelor\\test-formulas\\test_amo.txt"
+#filename: "C:\\dev\\Bachelor\\merlin-formulas\\wingas\\merlin-clauseset420509740828757424.txt"
+filename: "C:/dev/Bachelor/test-formulas/test_amo.txt"
 output:
   print_progress: true
   output_plots: false
