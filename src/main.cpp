@@ -167,7 +167,7 @@ int main(int argc, char *argv[]) {
         chrono::steady_clock::now();
 
     while(!constructionDone) {
-        if (chrono::duration_cast<chrono::minutes>(chrono::steady_clock::now() - process_begin).count() >= 5) {
+        if (chrono::duration_cast<chrono::minutes>(chrono::steady_clock::now() - process_begin).count() >= 60) {
             spdlog::warn("The task has been executing for over 5 minutes, stopping now");
             exit(EXIT_FAILURE);
         }
