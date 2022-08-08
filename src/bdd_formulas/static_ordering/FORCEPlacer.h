@@ -24,6 +24,7 @@ class FORCEPlacer {
     std::vector<HGNode> findPlacement(bool output = false);
   protected:
     void createGraphEdgesFromNodes();
+    std::set<HGEdge> getEdgesContainingNode(HGNode& node);
 
     const double iterationConstant = 10;
     const double spanEpsilon = 200;

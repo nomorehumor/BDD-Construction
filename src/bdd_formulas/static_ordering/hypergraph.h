@@ -35,7 +35,7 @@ inline bool operator<(const HGEdge& lhs, const HGEdge& rhs)
 struct HGGraph {
     std::set<HGEdge> edges;
     std::vector<HGNode> nodes;
-    std::map<HGNode, std::set<HGEdge>> nodeEdges;
+    std::map<HGNode, std::set<HGEdge>> nodeEdgesCache;
 };
 
 #endif // CODE_HYPERGRAPH_H

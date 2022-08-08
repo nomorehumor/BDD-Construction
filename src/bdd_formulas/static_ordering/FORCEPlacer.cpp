@@ -10,13 +10,28 @@
 #include <cmath>
 #include <numeric>
 
+#define NODE_EDGES_CACHE_MAX_AMOUNT 1000
+
+std::set<HGEdge> FORCEPlacer::getEdgesContainingNode(HGNode& node) {
+    std::set<HGEdge> edges;
+    for (HGEdge edge : this->graph.edges) {
+        if (edge.nodes.contains(node)) {
+            edges.insert(edge);
+        }
+    }
+    return edges;
+}
+
 void FORCEPlacer::createGraphEdgesFromNodes() {
     for (auto varNode : varNodes) {
         HGEdge edge{(int)graph.edges.size(), varNode.second};
-        for (HGNode node : varNode.second) {
-            graph.nodeEdges[node].insert(edge);
+        if (varNode.second.size() <= NODE_EDGES_CACHE_MAX_AMOUNT) {
+            for (HGNode node : varNode.second) {
+                graph.nodeEdgesCache[node].insert(edge);
+            }
         }
         graph.edges.insert(edge);
+        spdlog::info("Created hypergraph edges: {}", graph.edges.size());
     }
 }
 
@@ -35,9 +50,10 @@ FORCEPlacer::FORCEPlacer(RulesetInfo& rulesetInfo) {
             }
             HGEdge edge{(int)graph.edges.size(), nodesInEdge};
             for (HGNode node : nodesInEdge) {
-                graph.nodeEdges[node].insert(edge);
+                graph.nodeEdgesCache[node].insert(edge);
             }
             graph.edges.insert(edge);
+
         }
     }
 }
@@ -47,6 +63,7 @@ FORCEPlacer::FORCEPlacer(std::vector<FormulaInfo>& formulas) {
         HGNode node{formula.id};
         graph.nodes.push_back(node);
 
+        spdlog::info("Created hypergraph nodes: {}", graph.nodes.size());
         for (int var : formula.containedVars) {
             varNodes[var].insert(node);
         }
@@ -170,12 +187,13 @@ std::vector<HGNode> FORCEPlacer::findPlacement(bool output) {
         std::map<HGNode, double> newIndices;
         for (HGNode node : graph.nodes) {
             std::vector<double> nodeEdgesCog;
-            for (HGEdge edge : graph.nodeEdges[node]) {
+            std::set<HGEdge> edgesContainingNode = graph.nodeEdgesCache.contains(node) ? graph.nodeEdgesCache[node] : getEdgesContainingNode(node);
+            for (HGEdge edge : edgesContainingNode) {
                 nodeEdgesCog.push_back(cogs[edge]);
             }
             double newIndex = ((double)std::reduce(nodeEdgesCog.begin(),
                                                    nodeEdgesCog.end())) /
-                              graph.nodeEdges[node].size();
+                              edgesContainingNode.size();
             newIndices[node] = newIndex;
         }
 

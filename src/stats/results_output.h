@@ -9,6 +9,7 @@
 #include <filesystem>
 #include <fstream>
 namespace stats {
+
 void logRunInfo(int nodeCount, int totalTime_s, int constructionTime_s,
                 int orderingTime_s) {
     std::filesystem::path filepath(BDDConfiguration::getInputFilename());
@@ -24,7 +25,7 @@ void logRunInfo(int nodeCount, int totalTime_s, int constructionTime_s,
     std::fstream fout;
     fout.open(csvFileName, std::ios::out | std::ios::app);
     if (!fileExists) {
-        fout << "ruleset name, ordering time, construction time, total time, nodeCount \n";
+        fout << "ruleset name,ordering time,construction time,total time,nodeCount\n";
     }
 
     fout << rulesetName << "," << orderingTime_s << "," << constructionTime_s

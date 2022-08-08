@@ -54,6 +54,7 @@ void setup_logger() {
     spdlog::set_default_logger(combined_logger);
     //    spdlog::set_pattern("[%H:%M:%S:%e] [%l] [%s:%#] %v");
     spdlog::set_pattern("[%H:%M:%S:%e] [%l] %v");
+    spdlog::set_level(spdlog::level::debug);
 }
 
 RulesetInfo orderRuleset(DdManager *gbm, RulesetInfo &setInfo,
