@@ -205,7 +205,7 @@ int main(int argc, char *argv[]) {
 
     while (chrono::duration_cast<chrono::minutes>(
                chrono::steady_clock::now() - process_begin) < TIME_LIMIT_MIN && !constructionDone) {
-        std::this_thread::sleep_for(10s);
+        std::this_thread::sleep_for(30s);
     }
 
     if (!constructionDone) {
