@@ -8,11 +8,11 @@
 #include "spdlog/sinks/stdout_sinks.h"
 #include "spdlog/spdlog.h"
 #include "stats/BDDBuildTimeCounter.h"
-#include "stats/results_output.h"
 #include "utils/BDDConfiguration.h"
 #include "utils/file_utils.h"
 #include "utils/minterm_utils.h"
 #include "utils/output_utils.h"
+#include "utils/results_output.h"
 #include <climits>
 #include <filesystem>
 #include <future>
@@ -22,7 +22,7 @@ namespace chrono = std::chrono;
 
 using std::chrono::operator""min;
 using std::chrono::operator""s;
-const chrono::minutes TIME_LIMIT_MIN = 60min;
+const chrono::minutes TIME_LIMIT_MIN = 5min;
 
 std::string getTimestamp() {
     std::time_t now = time(nullptr);
@@ -85,6 +85,8 @@ RulesetInfo orderRuleset(DdManager *gbm, RulesetInfo &setInfo,
             reorderedSet = orderRulesetFrequentVariables(
                 reorderedSet, BDDConfiguration::isCountAllAppearances(),
                 BDDConfiguration::isSkipMostFrequentVar());
+        } else if (setStrategy == "force_modified") {
+            reorderedSet = orderRulesetModifiedFORCE(reorderedSet);
         } else if (setStrategy == "force") {
             reorderedSet = orderRulesetFORCE(reorderedSet);
         } else {
@@ -210,13 +212,13 @@ int main(int argc, char *argv[]) {
 
     if (!constructionDone) {
         spdlog::warn(
-            "The task has been executing for over 60 minutes, stopping now");
-        stats::logRunInfo(Cudd_ReadNodeCount(gbm), -1, -1,
+            "The task has been executing for over 5 minutes, stopping now");
+        utils::logRunInfo(Cudd_ReadNodeCount(gbm), -1, -1,
                           BDDBuildTimeCounter::getOrderingTimeInMilliseconds());
         exit(EXIT_FAILURE);
     }
 
-    stats::logRunInfo(Cudd_ReadNodeCount(gbm),
+    utils::logRunInfo(Cudd_ReadNodeCount(gbm),
                       BDDBuildTimeCounter::getTotalTimeInMilliseconds(),
                       BDDBuildTimeCounter::getConstructionTimeInMilliseconds(),
                       BDDBuildTimeCounter::getOrderingTimeInMilliseconds());

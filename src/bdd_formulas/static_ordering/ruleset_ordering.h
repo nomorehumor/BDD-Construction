@@ -10,6 +10,7 @@
 RulesetInfo orderRulesetRandom(RulesetInfo& setInfo);
 RulesetInfo orderRulesetFormulaSize(RulesetInfo& setInfo, bool ascending);
 RulesetInfo orderRulesetFrequentVariables(RulesetInfo& setInfo, bool countAllAppearances, bool skipFirst);
+RulesetInfo orderRulesetModifiedFORCE(RulesetInfo setInfo);
 RulesetInfo orderRulesetFORCE(RulesetInfo setInfo);
 
 #endif // CODE_RULESET_ORDERING_H

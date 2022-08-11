@@ -50,6 +50,7 @@ std::vector<int> orderVariablesByFrequency(RulesetInfo& setInfo, bool skipFirst,
 }
 
 std::vector<int> orderVariablesFORCE(RulesetInfo setInfo) {
-    FORCEPlacer placer(setInfo);
+    FORCEPlacer placer;
+    placer.initGraphWithRulesetModifiedFORCE(setInfo);
     return placer.orderVariablesWithPlacement(placer.findPlacement(true));
 }

@@ -54,7 +54,8 @@ RulesetInfo orderClausesFORCE(RulesetInfo setInfo) {
     spdlog::info("Ordering clauses with FORCE");
     for (FormulaInfo &formula : setInfo.formulas) {
         if (formula.clauses.size() > 2) {
-            FORCEPlacer placer(formula);
+            FORCEPlacer placer;
+            placer.initGraphWithFormula(formula);
             bar.update(i);
             formulas.push_back(placer.orderClausesWithPlacement(
                 formula, placer.findPlacement()));

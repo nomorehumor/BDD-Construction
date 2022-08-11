@@ -69,9 +69,19 @@ RulesetInfo orderRulesetFrequentVariables(RulesetInfo &setInfo,
     return newSetInfo;
 }
 
-RulesetInfo orderRulesetFORCE(RulesetInfo setInfo) {
-    FORCEPlacer placer(setInfo.formulas);
+RulesetInfo orderRulesetModifiedFORCE(RulesetInfo setInfo) {
+    FORCEPlacer placer;
+    placer.initGraphWithRulesetModifiedFORCE(setInfo);
     setInfo.formulas = placer.orderFormulasWithPlacement(
         setInfo.formulas, placer.findPlacement(true));
+    return setInfo;
+}
+
+RulesetInfo orderRulesetFORCE(RulesetInfo setInfo) {
+    FORCEPlacer placer;
+    placer.initGraphWithRuleset(setInfo);
+    setInfo.formulas = placer.orderFormulasWithPlacement(
+        setInfo.formulas, placer.findPlacement(true)
+        );
     return setInfo;
 }
