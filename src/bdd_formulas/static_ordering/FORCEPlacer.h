@@ -13,9 +13,10 @@
 
 class FORCEPlacer {
   public:
-    FORCEPlacer(RulesetInfo &rulesetInfo);
-    FORCEPlacer(std::vector<FormulaInfo>& formulas);
-    FORCEPlacer(FormulaInfo &formula);
+    FORCEPlacer() {}
+    void initGraphWithRuleset(RulesetInfo& rulesetInfo);
+    void initGraphWithRulesetModifiedFORCE(RulesetInfo& rulesetInfo);
+    void initGraphWithFormula(FormulaInfo &formula);
 
     int calculateGraphTotalSpan();
     std::vector<FormulaInfo> orderFormulasWithPlacement(std::vector<FormulaInfo> formulas, std::vector<HGNode> placement);

@@ -337,7 +337,7 @@ The limit size for fast growth\index{growth} can be read by
 \emph{Cudd\_ReadLooseUpTo}\eidx{Cudd\_ReadLooseUpto} and changed by
 \emph{Cudd\_SetLooseUpTo}\eidx{Cudd\_SetLooseUpTo}.  Similar pairs of
 functions exist for several other parameters. See also
-Section~\ref{sec:stats}.
+Section~\ref{sec:utils}.
 
 \subsection{Constant Functions}
 \index{node!constant}\label{sec:const}
@@ -1583,7 +1583,7 @@ For this function to be effective the application must explicitly
 dispose of all diagrams to which it has pointers before calling it.
 
 \subsection{Gathering and Interpreting Statistics}
-\index{statistics}\label{sec:stats}
+\index{statistics}\label{sec:utils}
 
 Function \emph{Cudd\_PrintInfo}\eidx{Cudd\_PrintInfo} can be called to
 print out the values of parameters and statistics for a manager.  The

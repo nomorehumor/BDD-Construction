@@ -20,7 +20,7 @@ void FORCEPlacer::createGraphEdgesFromNodes() {
     }
 }
 
-FORCEPlacer::FORCEPlacer(RulesetInfo& rulesetInfo) {
+void FORCEPlacer::initGraphWithRuleset(RulesetInfo& rulesetInfo) {
 
     for (int i = 1; i <= rulesetInfo.variableAmount; i++) {
         HGNode node{i};
@@ -42,8 +42,8 @@ FORCEPlacer::FORCEPlacer(RulesetInfo& rulesetInfo) {
     }
 }
 
-FORCEPlacer::FORCEPlacer(std::vector<FormulaInfo>& formulas) {
-    for (FormulaInfo &formula : formulas) {
+void FORCEPlacer::initGraphWithRulesetModifiedFORCE(RulesetInfo& rulesetInfo) {
+    for (FormulaInfo &formula : rulesetInfo.formulas) {
         HGNode node{formula.id};
         graph.nodes.push_back(node);
 
@@ -55,7 +55,7 @@ FORCEPlacer::FORCEPlacer(std::vector<FormulaInfo>& formulas) {
     this->createGraphEdgesFromNodes();
 }
 
-FORCEPlacer::FORCEPlacer(FormulaInfo &formula) {
+void FORCEPlacer::initGraphWithFormula(FormulaInfo &formula) {
     for (int i = 0; i < formula.clauses.size(); i++) {
         HGNode node{i};
         graph.nodes.push_back(node);

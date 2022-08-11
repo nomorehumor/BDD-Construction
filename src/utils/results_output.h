@@ -4,11 +4,11 @@
 
 #ifndef CODE_CSV_UTILS_H
 #define CODE_CSV_UTILS_H
-#include "../utils/BDDConfiguration.h"
+#include "BDDConfiguration.h"
 #include "spdlog/fmt/bundled/format.h"
 #include <filesystem>
 #include <fstream>
-namespace stats {
+namespace utils {
 void logRunInfo(int nodeCount, int totalTime_s, int constructionTime_s,
                 int orderingTime_s) {
     std::filesystem::path filepath(BDDConfiguration::getInputFilename());
