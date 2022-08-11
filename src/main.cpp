@@ -65,7 +65,7 @@ RulesetInfo orderRuleset(DdManager *gbm, RulesetInfo &setInfo,
 
     spdlog::info("Using '{}' clause static ordering heuristic", clauseStrategy);
     if (clauseStrategy != "none") {
-        if (clauseStrategy == "bottom_up") {
+        if (clauseStrategy == "bottom-up") {
             reorderedSet = orderClausesBottomUp(setInfo);
         } else if (clauseStrategy == "force") {
             reorderedSet = orderClausesFORCE(setInfo);
@@ -81,15 +81,13 @@ RulesetInfo orderRuleset(DdManager *gbm, RulesetInfo &setInfo,
                 reorderedSet, BDDConfiguration::isAscending());
         } else if (setStrategy == "random") {
             reorderedSet = orderRulesetRandom(reorderedSet);
-        } else if (setStrategy == "var_frequency") {
+        } else if (setStrategy == "var-frequency") {
             reorderedSet = orderRulesetFrequentVariables(
                 reorderedSet, BDDConfiguration::isCountAllAppearances(),
                 BDDConfiguration::isSkipMostFrequentVar());
-        } else if (setStrategy == "force_modified") {
+        } else if (setStrategy == "force-modified") {
             reorderedSet = orderRulesetModifiedFORCE(reorderedSet);
-        } else if (setStrategy == "force") {
-            reorderedSet = orderRulesetFORCE(reorderedSet);
-        } else {
+        }  else {
             spdlog::warn(
                 "Unknown ruleset ordering strategy, using 'none' instead");
         }
@@ -99,11 +97,11 @@ RulesetInfo orderRuleset(DdManager *gbm, RulesetInfo &setInfo,
                  variableStrategy);
     if (variableStrategy != "none") {
         std::vector<int> variableOrdering;
-        if (variableStrategy == "var_frequency") {
+        if (variableStrategy == "var-frequency") {
             variableOrdering = orderVariablesByFrequency(
                 reorderedSet, BDDConfiguration::isSkipMostFrequentVar(),
                 BDDConfiguration::isCountAllAppearances());
-        } else if (variableStrategy == "force_modified") {
+        } else if (variableStrategy == "force-modified") {
             variableOrdering = orderVariablesModifiedFORCE(reorderedSet);
         } else if (variableStrategy == "force") {
             variableOrdering = orderVariablesFORCE(reorderedSet);
@@ -128,7 +126,7 @@ DdNode *createBDD(RulesetInfo info, DdManager *gbm) {
     // Dynamic reordering
     if (BDDConfiguration::isEnableDynamicOrdering()) {
         Cudd_AutodynEnable(gbm, CUDD_REORDER_SIFT);
-        Cudd_ReduceHeap(gbm, CUDD_REORDER_SYMM_SIFT, 3000);
+//        Cudd_ReduceHeap(gbm, CUDD_REORDER_SYMM_SIFT, 3000);
         spdlog::info("Dynamic ordering enabled");
     } else {
         spdlog::info("Dynamic ordering disabled");
