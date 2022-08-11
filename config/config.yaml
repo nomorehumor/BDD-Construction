@@ -6,14 +6,14 @@ output:
 
 ordering:
   set:
-    strategy: "var_frequency" # none, random, size, var_frequency, force
+    strategy: "force-modified" # none, random, size, var-frequency, force
     ascending: true # relevant only for 'size' strategy
-    skip_most_frequent_var: true # relevant only for 'var_frequency' strategy
-    count_all_appearances: false # relevant only for 'var_frequency' strategy
+    skip_most_frequent_var: true # relevant only for 'var-frequency' strategy
+    count_all_appearances: false # relevant only for 'var-frequency' strategy
   clause:
-    strategy: "none" # none, bottom_up, force
+    strategy: "none" # none, bottom-up, force
   variable:
-    strategy: "none" # none, var_frequency
+    strategy: "force" # none, var-frequency
 
   enable_dynamic_ordering: true
   construction:

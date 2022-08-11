@@ -29,6 +29,7 @@ class BDDBuildTimeCounter {
         } else {
             orderingEnd = chrono::steady_clock::now();
         }
+        spdlog::info("Ordering finished in {}ms", getOrderingTimeInMilliseconds());
     }
 
     static void constructionStarted() {
@@ -42,6 +43,7 @@ class BDDBuildTimeCounter {
         } else {
             constructionEnd = chrono::steady_clock::now();
         }
+        spdlog::info("Construction finished in {}ms", getConstructionTimeInMilliseconds());
     }
 
     static int getOrderingTimeInMilliseconds() {

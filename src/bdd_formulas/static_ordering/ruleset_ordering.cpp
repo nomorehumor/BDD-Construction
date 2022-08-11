@@ -76,12 +76,3 @@ RulesetInfo orderRulesetModifiedFORCE(RulesetInfo setInfo) {
         setInfo.formulas, placer.findPlacement(true));
     return setInfo;
 }
-
-RulesetInfo orderRulesetFORCE(RulesetInfo setInfo) {
-    FORCEPlacer placer;
-    placer.initGraphWithRuleset(setInfo);
-    setInfo.formulas = placer.orderFormulasWithPlacement(
-        setInfo.formulas, placer.findPlacement(true)
-        );
-    return setInfo;
-}
