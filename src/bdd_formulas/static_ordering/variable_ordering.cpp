@@ -57,6 +57,6 @@ std::vector<int> orderVariablesModifiedFORCE(RulesetInfo setInfo) {
 
 std::vector<int> orderVariablesFORCE(RulesetInfo info) {
     FORCEPlacer placer;
-    placer.initGraphWithRuleset(info)
+    placer.initGraphWithRuleset(info);
     return placer.orderVariablesWithPlacement(placer.findPlacement(true));
 }
