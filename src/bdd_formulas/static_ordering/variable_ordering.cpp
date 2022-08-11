@@ -49,8 +49,14 @@ std::vector<int> orderVariablesByFrequency(RulesetInfo& setInfo, bool skipFirst,
     return varsSorted;
 }
 
-std::vector<int> orderVariablesFORCE(RulesetInfo setInfo) {
+std::vector<int> orderVariablesModifiedFORCE(RulesetInfo setInfo) {
     FORCEPlacer placer;
     placer.initGraphWithRulesetModifiedFORCE(setInfo);
+    return placer.orderVariablesWithPlacement(placer.findPlacement(true));
+}
+
+std::vector<int> orderVariablesFORCE(RulesetInfo info) {
+    FORCEPlacer placer;
+    placer.initGraphWithRuleset(info)
     return placer.orderVariablesWithPlacement(placer.findPlacement(true));
 }
