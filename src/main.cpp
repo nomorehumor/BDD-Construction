@@ -103,6 +103,8 @@ RulesetInfo orderRuleset(DdManager *gbm, RulesetInfo &setInfo,
             variableOrdering = orderVariablesByFrequency(
                 reorderedSet, BDDConfiguration::isSkipMostFrequentVar(),
                 BDDConfiguration::isCountAllAppearances());
+        } else if (variableStrategy == "force_modified") {
+            variableOrdering = orderVariablesModifiedFORCE(reorderedSet);
         } else if (variableStrategy == "force") {
             variableOrdering = orderVariablesFORCE(reorderedSet);
         } else {
@@ -206,7 +208,8 @@ int main(int argc, char *argv[]) {
         chrono::steady_clock::now();
 
     while (chrono::duration_cast<chrono::minutes>(
-               chrono::steady_clock::now() - process_begin) < TIME_LIMIT_MIN && !constructionDone) {
+               chrono::steady_clock::now() - process_begin) < TIME_LIMIT_MIN &&
+           !constructionDone) {
         std::this_thread::sleep_for(30s);
     }
 
