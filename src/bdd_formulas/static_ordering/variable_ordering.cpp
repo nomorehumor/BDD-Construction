@@ -4,6 +4,18 @@
 
 #include "variable_ordering.h"
 #include "FORCEPlacer.h"
+#include <algorithm>
+#include <random>
+
+std::vector<int> orderVariablesRandom(RulesetInfo& setInfo) {
+    std::vector<int> variables;
+    for (int i = 1; i <= setInfo.variableAmount; i++) {
+        variables.push_back(i);
+    }
+    auto rng = std::default_random_engine {};
+    std::shuffle(std::begin(variables), std::end(variables), rng);
+    return variables;
+}
 
 std::vector<int> orderVariablesByFrequency(RulesetInfo& setInfo, bool skipFirst, bool countAllAppearances, std::map<int, int> *variableFrequencyMap) {
 

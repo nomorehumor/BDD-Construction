@@ -22,7 +22,6 @@ namespace chrono = std::chrono;
 
 using std::chrono::operator""min;
 using std::chrono::operator""s;
-const chrono::minutes TIME_LIMIT_MIN = 5min;
 
 std::string getTimestamp() {
     std::time_t now = time(nullptr);
@@ -105,6 +104,8 @@ RulesetInfo orderRuleset(DdManager *gbm, RulesetInfo &setInfo,
             variableOrdering = orderVariablesModifiedFORCE(reorderedSet);
         } else if (variableStrategy == "force") {
             variableOrdering = orderVariablesFORCE(reorderedSet);
+        } else if (variableStrategy == "random") {
+            variableOrdering = orderVariablesRandom(reorderedSet);
         } else {
             spdlog::warn(
                 "Unknown variable ordering strategy, using 'none' instead");
@@ -173,10 +174,6 @@ void createBddInThread(RulesetInfo info, DdManager *gbm,
     *done = true;
 }
 
-auto getTimeLimit(chrono::steady_clock::time_point process_begin) {
-    return process_begin + TIME_LIMIT_MIN;
-}
-
 int main(int argc, char *argv[]) {
     std::string configPath = "config/config.yaml";
     BDDConfiguration::getInstance()->load(configPath);
@@ -190,8 +187,9 @@ int main(int argc, char *argv[]) {
 
     std::filesystem::copy_file(
         configPath, BDDConfiguration::getOutputDirectory() + "/config.yaml");
-
     setup_logger();
+
+    const chrono::minutes timeLimitMin = chrono::minutes(BDDConfiguration::getTimeLimitMin());
 
     RulesetInfo info = readClauselSetInfo(BDDConfiguration::getInputFilename());
     printRulesetStats(info);
@@ -206,14 +204,14 @@ int main(int argc, char *argv[]) {
         chrono::steady_clock::now();
 
     while (chrono::duration_cast<chrono::minutes>(
-               chrono::steady_clock::now() - process_begin) < TIME_LIMIT_MIN &&
+               chrono::steady_clock::now() - process_begin) < timeLimitMin &&
            !constructionDone) {
         std::this_thread::sleep_for(30s);
     }
 
     if (!constructionDone) {
         spdlog::warn(
-            "The task has been executing for over 5 minutes, stopping now");
+            "The task has been executing for over {} minutes, stopping now", timeLimitMin.count());
         utils::logRunInfo(Cudd_ReadNodeCount(gbm), -1, -1,
                           BDDBuildTimeCounter::getOrderingTimeInMilliseconds());
         exit(EXIT_FAILURE);
