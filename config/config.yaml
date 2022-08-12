@@ -20,3 +20,5 @@ ordering:
     formula: "dfs" # dfs, merge
     ruleset: "dfs" # dfs, merge_recursive, merge_parts
     parts_amount: 10 # relevant only for ruleset 'merge_parts' strategy
+
+time_limit_min: 5
