@@ -12,5 +12,6 @@
 std::vector<int> orderVariablesByFrequency(RulesetInfo& setInfo, bool skipFirst, bool countAllAppearances, std::map<int, int> *variableFrequencyMap = nullptr);
 std::vector<int> orderVariablesModifiedFORCE(RulesetInfo setInfo);
 std::vector<int> orderVariablesFORCE(RulesetInfo info);
+std::vector<int> orderVariablesRandom(RulesetInfo& setInfo);
 
 #endif // CODE_VARIABLE_ORDERING_H

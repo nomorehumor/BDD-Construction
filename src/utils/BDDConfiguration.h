@@ -80,6 +80,7 @@ public:
         constructionFormulaOrdering = config["ordering"]["construction"]["formula"].as<std::string>();
         constructionRulesetOrdering = config["ordering"]["construction"]["ruleset"].as<std::string>();
         mergeParts = config["ordering"]["construction"]["parts_amount"].as<int>();
+        timeLimitMin = config["time_limit_min"].as<int>();
     }
 
     static void parseArgs(int argc, char *argv[]) {
@@ -158,6 +159,10 @@ public:
         return variableOrdering;
     }
 
+    static int getTimeLimitMin() {
+        return timeLimitMin;
+    }
+
     BDDConfiguration(BDDConfiguration const&) = delete;
     void operator=(BDDConfiguration const&) = delete;
 
@@ -177,6 +182,8 @@ protected:
     inline static int mergeParts = 10;
     inline static std::string outputDirectory = "output";
     inline static std::string variableOrdering = "none";
+
+    inline static int timeLimitMin = 5;
 
     BDDConfiguration() {}
     inline static BDDConfiguration* configuration_ = nullptr;
