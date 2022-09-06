@@ -3,8 +3,8 @@
 //
 
 #include "ruleset_ordering.h"
-#include "../../utils/BDDConfiguration.h"
-#include "../../utils/file_utils.h"
+#include "../../utils/configuration.h"
+#include "../../utils/info_structs.h"
 #include "FORCEPlacer.h"
 #include "utils.h"
 #include "variable_ordering.h"
@@ -52,7 +52,7 @@ RulesetInfo orderRulesetFrequentVariables(RulesetInfo &setInfo,
     }
 
     printVariableFrequencyStats(variableOrdering, variableFrequencyMap);
-    if (BDDConfiguration::isOutputPlots()) {
+    if (Configuration::isOutputPlots()) {
         plotVariableFrequencyStats(variableOrdering, variableFrequencyMap);
         //        plotFormulaPartition(formulaIdVarMap, setInfo.variableAmount);
     }

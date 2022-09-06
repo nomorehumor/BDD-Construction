@@ -4,7 +4,7 @@
 
 #include "bdd_formulas.h"
 #include "../stats/BDDBuildStatistic.h"
-#include "../utils/BDDConfiguration.h"
+#include "../utils/configuration.h"
 #include "../utils/output_utils.h"
 #include "spdlog/spdlog.h"
 
@@ -13,9 +13,9 @@ DdNode* createFormulaBdd(DdManager *gbm, FormulaInfo info) {
     if (info.type == Form::AMO) {
         return createAMOFormulaFromInfo(gbm, info);
     } else {
-        if (BDDConfiguration::getConstructionFormulaOrdering() == "dfs") {
+        if (Configuration::getConstructionFormulaOrdering() == "dfs") {
             return createNFFormulaFromInfo(gbm, info);
-        } else if (BDDConfiguration::getConstructionFormulaOrdering() ==
+        } else if (Configuration::getConstructionFormulaOrdering() ==
                    "merge") {
             return createNFFormulaMerge(gbm, info);
         } else {

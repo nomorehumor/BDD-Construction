@@ -9,28 +9,7 @@
 #include <set>
 #include <string>
 #include <vector>
-
-enum Form {
-    DNF,
-    CNF,
-    AMO
-};
-
-struct FormulaInfo {
-    int id;
-    Form type;
-    std::vector<int> symbols;
-    std::vector<std::vector<int>> clauses;
-    std::set<int> containedVars;
-};
-
-struct RulesetInfo{
-    Form type;
-    int clauselAmount;
-    int variableAmount;
-    std::vector<FormulaInfo> formulas;
-};
-
+#include "info_structs.h"
 
 RulesetInfo readClauselSetInfo(std::string filename, bool convertAmo = false);
 

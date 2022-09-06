@@ -2,7 +2,7 @@
 // Created by Maxim.Popov on 11.07.2022.
 //
 #include "clause_ordering.h"
-#include "../../utils/BDDConfiguration.h"
+#include "../../utils/configuration.h"
 #include "../../utils/progress_bar.h"
 #include "FORCEPlacer.h"
 #include "matplotlibcpp.h"

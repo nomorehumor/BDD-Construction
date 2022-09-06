@@ -3,7 +3,7 @@
 //
 
 #include "bdd_rulesets.h"
-#include "../utils/BDDConfiguration.h"
+#include "../utils/configuration.h"
 #include "spdlog/spdlog.h"
 #include <chrono>
 #include "bdd_formulas.h"

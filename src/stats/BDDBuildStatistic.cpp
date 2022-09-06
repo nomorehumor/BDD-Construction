@@ -3,7 +3,7 @@
 //
 
 #include "BDDBuildStatistic.h"
-#include "../utils/BDDConfiguration.h"
+#include "../utils/configuration.h"
 #include "matplotlibcpp.h"
 #include "spdlog/spdlog.h"
 
@@ -17,10 +17,10 @@ BDDBuildStatistic::BDDBuildStatistic(int totalItems, int outputInterval) {
 void BDDBuildStatistic::logCudd(DdManager *gbm) {
     memorySize.push_back(Cudd_ReadMemoryInUse(gbm));
 
-    if (this->totalItemsDone % outputInterval == 0 && BDDConfiguration::isOutputPlots()) {
+    if (this->totalItemsDone % outputInterval == 0 && Configuration::isOutputPlots()) {
         plt::plot(memorySize);
         plt::title("Used memory (in bytes)");
-        plt::save(BDDConfiguration::getOutputDirectory() + "/memory.png");
+        plt::save(Configuration::getOutputDirectory() + "/memory.png");
         plt::clf();
     }
 }
@@ -54,23 +54,23 @@ void BDDBuildStatistic::logStep(const FormulaInfo &formula, int itemsDone,
     formTimes[formula.type].push_back(stepTime_ms);
     formNodeDelta[formula.type].push_back(delta);
 
-    if (this->totalItemsDone % outputInterval == 0 && BDDConfiguration::isOutputPlots()) {
+    if (this->totalItemsDone % outputInterval == 0 && Configuration::isOutputPlots()) {
         plt::figure_size(1200, 780);
         plt::plot(stepTimes_ms);
-        plt::save(BDDConfiguration::getOutputDirectory() + "/step_times.png");
+        plt::save(Configuration::getOutputDirectory() + "/step_times.png");
         plt::clf();
 
         plt::stem(nodeCountDelta, stepTimes_ms);
-        plt::save(BDDConfiguration::getOutputDirectory() +
+        plt::save(Configuration::getOutputDirectory() +
                   "/nodecountdelta_times.png");
         plt::clf();
 
         plt::plot(stepNodeCount);
-        plt::save(BDDConfiguration::getOutputDirectory() + "/nodecount.png");
+        plt::save(Configuration::getOutputDirectory() + "/nodecount.png");
         plt::clf();
 
         plt::stem(stepNodeCount, stepTimes_ms);
-        plt::save(BDDConfiguration::getOutputDirectory() +
+        plt::save(Configuration::getOutputDirectory() +
                   "/nodecount_times.png");
         plt::clf();
 
@@ -100,7 +100,7 @@ void BDDBuildStatistic::logStep(const FormulaInfo &formula, int itemsDone,
             currentSubplotAmount++;
         }
         if (currentSubplotAmount != 1) {
-            plt::save(BDDConfiguration::getOutputDirectory() +
+            plt::save(Configuration::getOutputDirectory() +
                       "/nodecountdelta_times_type_comparison.png");
         }
         plt::close();

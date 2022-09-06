@@ -55,11 +55,11 @@ class InputParser{
 };
 
 
-class BDDConfiguration {
+class Configuration {
 public:
-    static BDDConfiguration* getInstance() {
+    static Configuration* getInstance() {
         if(configuration_ == nullptr) {
-            configuration_ = new BDDConfiguration();
+            configuration_ = new Configuration();
         }
         return configuration_;
     }
@@ -68,6 +68,7 @@ public:
         YAML::Node config = YAML::LoadFile(filename);
 
         inputFilename = config["filename"].as<std::string>();
+        diagramType = config["diagram_type"].as<std::string>();
         outputPlots = config["output"]["output_plots"].as<bool>();
         skipMostFrequentVar = config["ordering"]["set"]["skip_most_frequent_var"].as<bool>();
         printProgress = config["output"]["print_progress"].as<bool>();
@@ -97,6 +98,10 @@ public:
         if (parser.cmdArgumentExists("--parts_amount")) {
             mergeParts = std::stoi(parser.getCmdArgument("--parts_amount"));
         }
+    }
+
+    static std::string getDiagramType() {
+        return diagramType;
     }
 
     static std::string getInputFilename() {
@@ -163,11 +168,13 @@ public:
         return timeLimitMin;
     }
 
-    BDDConfiguration(BDDConfiguration const&) = delete;
-    void operator=(BDDConfiguration const&) = delete;
+    Configuration(Configuration const&) = delete;
+    void operator=(Configuration const&) = delete;
 
 
 protected:
+    inline static std::string diagramType = "bdd";
+
     inline static std::string inputFilename = "";
     inline static bool outputPlots = true;
     inline static bool printProgress = true;
@@ -185,8 +192,8 @@ protected:
 
     inline static int timeLimitMin = 5;
 
-    BDDConfiguration() {}
-    inline static BDDConfiguration* configuration_ = nullptr;
+    Configuration() {}
+    inline static Configuration* configuration_ = nullptr;
 };
 
 

@@ -4,22 +4,23 @@
 
 #ifndef CODE_CSV_UTILS_H
 #define CODE_CSV_UTILS_H
-#include "BDDConfiguration.h"
+
+#include "configuration.h"
 #include "spdlog/fmt/bundled/format.h"
 #include <filesystem>
 #include <fstream>
 namespace utils {
 void logRunInfo(int nodeCount, int totalTime_s, int constructionTime_s,
                 int orderingTime_s) {
-    std::filesystem::path filepath(BDDConfiguration::getInputFilename());
+    std::filesystem::path filepath(Configuration::getInputFilename());
     filepath = filepath.make_preferred();
     std::string rulesetName = filepath.filename();
     std::string benchName = filepath.parent_path().filename();
 
     std::string csvFileName =
         fmt::format("output/{}_{}_{}.csv", benchName,
-                    BDDConfiguration::getRulesetOrderingStrategy(),
-                    BDDConfiguration::getVariableOrdering());
+                    Configuration::getRulesetOrderingStrategy(),
+                    Configuration::getVariableOrdering());
     bool fileExists = std::filesystem::exists(csvFileName);
     std::fstream fout;
     fout.open(csvFileName, std::ios::out | std::ios::app);

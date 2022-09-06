@@ -1,4 +1,6 @@
 
+#include "sddapi.h"
+#include "sdd_formulas/sdd_rulesets.h"
 #include "bdd_formulas/bdd_rulesets.h"
 #include "bdd_formulas/static_ordering/clause_ordering.h"
 #include "bdd_formulas/static_ordering/ruleset_ordering.h"
@@ -8,7 +10,7 @@
 #include "spdlog/sinks/stdout_sinks.h"
 #include "spdlog/spdlog.h"
 #include "stats/BDDBuildTimeCounter.h"
-#include "utils/BDDConfiguration.h"
+#include "utils/configuration.h"
 #include "utils/file_utils.h"
 #include "utils/minterm_utils.h"
 #include "utils/output_utils.h"
@@ -40,7 +42,7 @@ void setup_logger() {
     std::stringstream transTime;
     transTime << std::put_time(ltm, "%y.%m.%d-%H.%M.%S");
     std::string log_name =
-        fmt::format("{}/{}.log", BDDConfiguration::getOutputDirectory(), "run");
+        fmt::format("{}/{}.log", Configuration::getOutputDirectory(), "run");
 
     std::vector<spdlog::sink_ptr> sinks;
     sinks.push_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
@@ -77,13 +79,13 @@ RulesetInfo orderRuleset(DdManager *gbm, RulesetInfo &setInfo,
     if (setStrategy != "none") {
         if (setStrategy == "size") {
             reorderedSet = orderRulesetFormulaSize(
-                reorderedSet, BDDConfiguration::isAscending());
+                reorderedSet, Configuration::isAscending());
         } else if (setStrategy == "random") {
             reorderedSet = orderRulesetRandom(reorderedSet);
         } else if (setStrategy == "var-frequency") {
             reorderedSet = orderRulesetFrequentVariables(
-                reorderedSet, BDDConfiguration::isCountAllAppearances(),
-                BDDConfiguration::isSkipMostFrequentVar());
+                reorderedSet, Configuration::isCountAllAppearances(),
+                Configuration::isSkipMostFrequentVar());
         } else if (setStrategy == "force-modified") {
             reorderedSet = orderRulesetModifiedFORCE(reorderedSet);
         }  else {
@@ -98,8 +100,8 @@ RulesetInfo orderRuleset(DdManager *gbm, RulesetInfo &setInfo,
         std::vector<int> variableOrdering;
         if (variableStrategy == "var-frequency") {
             variableOrdering = orderVariablesByFrequency(
-                reorderedSet, BDDConfiguration::isSkipMostFrequentVar(),
-                BDDConfiguration::isCountAllAppearances());
+                reorderedSet, Configuration::isSkipMostFrequentVar(),
+                Configuration::isCountAllAppearances());
         } else if (variableStrategy == "force-modified") {
             variableOrdering = orderVariablesModifiedFORCE(reorderedSet);
         } else if (variableStrategy == "force") {
@@ -125,7 +127,7 @@ RulesetInfo orderRuleset(DdManager *gbm, RulesetInfo &setInfo,
 DdNode *createBDD(RulesetInfo info, DdManager *gbm) {
 
     // Dynamic reordering
-    if (BDDConfiguration::isEnableDynamicOrdering()) {
+    if (Configuration::isEnableDynamicOrdering()) {
         Cudd_AutodynEnable(gbm, CUDD_REORDER_SIFT);
 //        Cudd_ReduceHeap(gbm, CUDD_REORDER_SYMM_SIFT, 3000);
         spdlog::info("Dynamic ordering enabled");
@@ -135,30 +137,30 @@ DdNode *createBDD(RulesetInfo info, DdManager *gbm) {
 
     // Static reordering
     info =
-        orderRuleset(gbm, info, BDDConfiguration::getRulesetOrderingStrategy(),
-                     BDDConfiguration::getClauseOrderingStrategy(),
-                     BDDConfiguration::getVariableOrdering());
+        orderRuleset(gbm, info, Configuration::getRulesetOrderingStrategy(),
+                     Configuration::getClauseOrderingStrategy(),
+                     Configuration::getVariableOrdering());
 
     spdlog::info("Using '{}' ruleset construction strategy",
-                 BDDConfiguration::getConstructionRulesetOrdering());
+                 Configuration::getConstructionRulesetOrdering());
 
     // Construct BDD
     DdNode *bdd;
     BDDBuildTimeCounter::constructionStarted();
-    if (BDDConfiguration::getConstructionRulesetOrdering() == "dfs") {
-        bdd = createRuleset(gbm, info, BDDConfiguration::getPrintProgress());
-    } else if (BDDConfiguration::getConstructionRulesetOrdering() ==
+    if (Configuration::getConstructionRulesetOrdering() == "dfs") {
+        bdd = createRuleset(gbm, info, Configuration::getPrintProgress());
+    } else if (Configuration::getConstructionRulesetOrdering() ==
                "merge_parts") {
         bdd = createRulesetMergedParts(gbm, info,
-                                       BDDConfiguration::getMergePartsAmount(),
-                                       BDDConfiguration::getPrintProgress());
-    } else if (BDDConfiguration::getConstructionRulesetOrdering() ==
+                                       Configuration::getMergePartsAmount(),
+                                       Configuration::getPrintProgress());
+    } else if (Configuration::getConstructionRulesetOrdering() ==
                "merge_recursive") {
         bdd = createRulesetRecursively(gbm, info);
     } else {
         spdlog::info(
             "No known ruleset construction strategy specified, using 'dfs'");
-        bdd = createRuleset(gbm, info, BDDConfiguration::getPrintProgress());
+        bdd = createRuleset(gbm, info, Configuration::getPrintProgress());
     }
 
     BDDBuildTimeCounter::constructionFinished();
@@ -174,26 +176,19 @@ void createBddInThread(RulesetInfo info, DdManager *gbm,
     *done = true;
 }
 
-int main(int argc, char *argv[]) {
-    std::string configPath = "config/config.yaml";
-    BDDConfiguration::getInstance()->load(configPath);
-    BDDConfiguration::parseArgs(argc, argv);
+SddNode* createSdd(RulesetInfo& info, SddManager *sm) {
+    BDDBuildTimeCounter::constructionStarted();
+    SddNode* sdd = sdd::createRuleset(sm, info, Configuration::getPrintProgress());
+    BDDBuildTimeCounter::constructionFinished();
+    return sdd;
+}
 
-    std::string outputDirName = "output/" + getTimestamp();
-    if (!std::filesystem::exists("output"))
-        std::filesystem::create_directories("output");
-    std::filesystem::create_directories(outputDirName);
-    BDDConfiguration::setOutputDirectory(outputDirName);
+void createSddInThread(RulesetInfo info, SddManager *sm, std::atomic<bool> *done, SddNode **sdd) {
+    *sdd = createSdd(info, sm);
+    *done = true;
+}
 
-    std::filesystem::copy_file(
-        configPath, BDDConfiguration::getOutputDirectory() + "/config.yaml");
-    setup_logger();
-
-    const chrono::minutes timeLimitMin = chrono::minutes(BDDConfiguration::getTimeLimitMin());
-
-    RulesetInfo info = readClauselSetInfo(BDDConfiguration::getInputFilename());
-    printRulesetStats(info);
-
+void startBDDPipeline(RulesetInfo& info) {
     DdManager *gbm = Cudd_Init(info.variableAmount, 0, CUDD_UNIQUE_SLOTS,
                                CUDD_CACHE_SLOTS, 0);
     DdNode *bdd;
@@ -203,6 +198,7 @@ int main(int argc, char *argv[]) {
     chrono::steady_clock::time_point process_begin =
         chrono::steady_clock::now();
 
+    const chrono::minutes timeLimitMin = chrono::minutes(Configuration::getTimeLimitMin());
     while (chrono::duration_cast<chrono::minutes>(
                chrono::steady_clock::now() - process_begin) < timeLimitMin &&
            !constructionDone) {
@@ -231,5 +227,67 @@ int main(int argc, char *argv[]) {
     int num_reference_nodes = Cudd_CheckZeroRef(gbm);
     spdlog::debug("#Nodes with non-zero reference count (should be 0): {0:d}",
                   num_reference_nodes);
+}
+
+void startSDDPipeline(RulesetInfo& info) {
+    SddLiteral varCount = info.variableAmount;
+    int autoGcAndMinimize = 1;
+    SddManager* manager = sdd_manager_create(varCount, autoGcAndMinimize);
+
+    SddNode *sdd;
+    std::atomic<bool> constructionDone = false;
+    std::thread sddConstruction(&createSddInThread, info, manager,
+                                &constructionDone, &sdd);
+    chrono::steady_clock::time_point process_begin =
+        chrono::steady_clock::now();
+
+    const chrono::minutes timeLimitMin = chrono::minutes(Configuration::getTimeLimitMin());
+    while (chrono::duration_cast<chrono::minutes>(
+               chrono::steady_clock::now() - process_begin) < timeLimitMin &&
+           !constructionDone) {
+        std::this_thread::sleep_for(30s);
+    }
+
+    if (!constructionDone) {
+        spdlog::warn(
+            "The task has been executing for over {} minutes, stopping now", timeLimitMin.count());
+        // utils::logRunInfo(Cudd_ReadNodeCount(gbm), -1, -1,
+        //                   BDDBuildTimeCounter::getOrderingTimeInMilliseconds());
+        exit(EXIT_FAILURE);
+    }
+
+    // utils::logRunInfo(Cudd_ReadNodeCount(gbm),
+    //                   BDDBuildTimeCounter::getTotalTimeInMilliseconds(),
+    //                   BDDBuildTimeCounter::getConstructionTimeInMilliseconds(),
+    //                   BDDBuildTimeCounter::getOrderingTimeInMilliseconds());
+
+    sdd_manager_free(manager);
+}
+
+int main(int argc, char *argv[]) {
+    std::string configPath = "config/config.yaml";
+    Configuration::getInstance()->load(configPath);
+    Configuration::parseArgs(argc, argv);
+
+    std::string outputDirName = "output/" + getTimestamp();
+    if (!std::filesystem::exists("output"))
+        std::filesystem::create_directories("output");
+    std::filesystem::create_directories(outputDirName);
+    Configuration::setOutputDirectory(outputDirName);
+
+    std::filesystem::copy_file(
+        configPath, Configuration::getOutputDirectory() + "/config.yaml");
+    setup_logger();
+
+
+    RulesetInfo info = readClauselSetInfo(Configuration::getInputFilename());
+    printRulesetStats(info);
+
+    if (Configuration::getDiagramType() == "bdd") {
+        startBDDPipeline(info);
+    } else if (Configuration::getDiagramType() == "sdd") {
+        startSDDPipeline(info);
+    }
+    
     return 0;
 }
