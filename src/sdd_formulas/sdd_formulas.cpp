@@ -11,72 +11,31 @@
 namespace sdd {
     
     SddNode* createFormulaSdd(SddManager *sm, FormulaInfo info) {
+        if (info.type == Form::AMO) {
+            info = transformAMOtoDNF(info);
+        }
         if (Configuration::getConstructionFormulaOrdering() == "dfs") {
-            return createNFFormulaFromInfo(sm, info);
+            return createNFFormulaFromClauses(sm, info);
         } else if (Configuration::getConstructionFormulaOrdering() ==
                 "merge") {
             return createNFFormulaMerge(sm, info);
         } else {
-            return createNFFormulaFromInfo(sm, info);
+            return createNFFormulaFromClauses(sm, info);
         }
     
     }
 
-    // SddNode *createAMOFormulaFromInfo(SddManager *sm, FormulaInfo amoInfo) {
-    //     SddNode *tmp, *tmpVar;
-    //     SddNode *bdd = sdd_manager_false(sm);
-    //     sdd_ref(bdd);
-    //     SddNode *notTerm = sdd_manager_true(sm);
-    //     sdd_ref(notTerm);
-    //     SddNode *zeroTerm = sdd_manager_false(sm);
-    //     sdd_ref(zeroTerm);
-
-    //     for (int i = 0; i < amoInfo.symbols.size(); i++) {
-    //         if (amoInfo.symbols.at(i) == 0)
-    //             continue;
-    //         tmpVar = sdd_manager_literal(amoInfo.symbols.at(i), sm);
-
-    //         tmp = sdd_(tmpVar, bdd, sm);
-    //         sdd_ref(tmp);
-    //         sdd_deref(bdd, sm);
-    //         bdd = tmp;
-
-    //         tmp = sdd_conjoin(tmpVar, notTerm, sm);
-    //         sdd_ref(tmp);
-    //         sdd_deref(notTerm, sm);
-    //         notTerm = tmp;
-
-    //         tmp = sdd_disjoin(tmpVar, zeroTerm, sm);
-    //         sdd_ref(tmp);
-    //         sdd_deref(zeroTerm, sm);
-    //         zeroTerm = tmp;
-    //     }
-
-    //     notTerm = sdd_negate(notTerm, sm);
-    //     tmp = sdd_conjoin(bdd, notTerm, sm);
-    //     sdd_ref(tmp);
-    //     sdd_deref(bdd, sm);
-    //     sdd_deref(notTerm, sm);
-    //     bdd = tmp;
-
-    //     zeroTerm = sdd_negate(zeroTer, sm);
-    //     tmp = sdd_disjoin(bdd, zeroTerm, sm);
-    //     sdd_ref(tmp);
-    //     sdd_deref(bdd, sm);
-    //     sdd_deref(zeroTerm, sm);
-    //     bdd = tmp;
-
-    //     return bdd;
-    // }
-
     SddNode *createCNFClause(SddManager *sm, std::vector<int> clauseVars) {
         SddNode *clause = sdd_manager_false(sm);
+        bool clauseSet = false;
         SddNode *tmpVar, *tmpClause;
 
         for (int var : clauseVars) {
             tmpVar = sdd_manager_literal((SddLiteral) var, sm);
             tmpClause = sdd_disjoin(tmpVar, clause, sm);
-            sdd_ref(tmpClause, sm); sdd_deref(clause, sm);
+            sdd_ref(tmpClause, sm); 
+            if (clauseSet) sdd_deref(clause, sm);
+            else clauseSet = true;
             clause = tmpClause;
         }
         return clause;
@@ -84,15 +43,20 @@ namespace sdd {
 
     SddNode *createDNFClause(SddManager *sm, std::vector<int> clauseVars) {
         SddNode *clause = sdd_manager_true(sm);
-        sdd_ref(clause, sm);
+        bool clauseSet = false;
         SddNode *tmpVar, *tmpClause;
+        printf("building clause\n");
 
         for (int var : clauseVars) {
+            printf("%d ", var);
             tmpVar = sdd_manager_literal(var, sm);
             tmpClause = sdd_conjoin(tmpVar, clause, sm);
-            sdd_ref(tmpClause, sm); sdd_deref(clause, sm);
+            sdd_ref(tmpClause, sm); 
+            if (clauseSet) sdd_deref(clause, sm);
+            else clauseSet = true;
             clause = tmpClause;
         }
+        printf("\n");
         return clause;
     }
 
@@ -104,10 +68,11 @@ namespace sdd {
         } else if (info.type == Form::CNF) {
             sdd = sdd_manager_true(sm);
         }
-        sdd_ref(sdd, sm);
+        bool sddSet = false;
 
+        int i = 0;
         for (std::vector<int> clause : info.clauses) {
-
+            printf("clause %d\n", i++);
             if (info.type == Form::DNF) {
                 clauseSdd = createDNFClause(sm, clause);
             } else if (info.type == Form::CNF) {
@@ -121,7 +86,8 @@ namespace sdd {
             }
             sdd_ref(tmpClause, sm);
             sdd_deref(clauseSdd, sm);
-            sdd_deref(sdd, sm);
+            if (sddSet) sdd_deref(sdd, sm);
+            else sddSet = true;
             sdd = tmpClause;
         }
         return sdd;
@@ -175,8 +141,7 @@ namespace sdd {
             sdd = sdd_manager_true(sm);
             lastVariables = sdd_manager_false(sm);
         }
-        sdd_ref(sdd, sm);
-        sdd_ref(lastVariables, sm);
+        bool lastVariablesSet = false;
 
         for (int i = 0; i < info.symbols.size(); i++) {
             if (info.symbols.at(i) == 0 && (info.symbols.at(i - 1) != 0)) {
@@ -191,7 +156,7 @@ namespace sdd {
                     sdd_deref(lastVariables, sm);
                     lastVariables = sdd_manager_false(sm);
                 }
-                sdd_ref(lastVariables, sm);
+                lastVariablesSet = false;
                 sdd_deref(sdd, sm);
                 sdd = tmpVar;
             } else if (info.symbols.at(i) != 0) {
@@ -203,7 +168,8 @@ namespace sdd {
                     tmpLastVariables = sdd_disjoin(tmpVar, lastVariables, sm);
                 }
                 sdd_ref(tmpLastVariables, sm);
-                sdd_deref(lastVariables, sm);
+                if (lastVariablesSet) sdd_deref(lastVariables, sm);
+                else lastVariablesSet = true;
                 lastVariables = tmpLastVariables;
             }
         }

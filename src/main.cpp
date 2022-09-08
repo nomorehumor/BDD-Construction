@@ -1,5 +1,7 @@
 
-#include "sddapi.h"
+extern "C" {
+    #include "sddapi.h"
+}
 #include "sdd_formulas/sdd_rulesets.h"
 #include "bdd_formulas/bdd_rulesets.h"
 #include "bdd_formulas/static_ordering/clause_ordering.h"
@@ -221,7 +223,7 @@ void startBDDPipeline(RulesetInfo& info) {
     double mintermsCount = Cudd_CountMinterm(gbm, bdd, info.variableAmount);
     spdlog::info("Minterm count: {0:f}", mintermsCount);
 
-    printMinterms(getMinterms(gbm, bdd, info.variableAmount, 50));
+    // printMinterms(getMinterms(gbm, bdd, info.variableAmount, 50));
 
     Cudd_RecursiveDeref(gbm, bdd);
     int num_reference_nodes = Cudd_CheckZeroRef(gbm);
@@ -251,16 +253,17 @@ void startSDDPipeline(RulesetInfo& info) {
     if (!constructionDone) {
         spdlog::warn(
             "The task has been executing for over {} minutes, stopping now", timeLimitMin.count());
-        // utils::logRunInfo(Cudd_ReadNodeCount(gbm), -1, -1,
-        //                   BDDBuildTimeCounter::getOrderingTimeInMilliseconds());
+        utils::logRunInfo(sdd_count(sdd), -1, -1,
+                          BDDBuildTimeCounter::getOrderingTimeInMilliseconds());
         exit(EXIT_FAILURE);
     }
 
-    // utils::logRunInfo(Cudd_ReadNodeCount(gbm),
-    //                   BDDBuildTimeCounter::getTotalTimeInMilliseconds(),
-    //                   BDDBuildTimeCounter::getConstructionTimeInMilliseconds(),
-    //                   BDDBuildTimeCounter::getOrderingTimeInMilliseconds());
+    utils::logRunInfo(sdd_count(sdd),
+                      BDDBuildTimeCounter::getTotalTimeInMilliseconds(),
+                      BDDBuildTimeCounter::getConstructionTimeInMilliseconds(),
+                      BDDBuildTimeCounter::getOrderingTimeInMilliseconds());
 
+    sdd_deref(sdd, manager);
     sdd_manager_free(manager);
 }
 

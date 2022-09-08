@@ -1,6 +1,9 @@
 #include <vector>
 #include "../utils/info_structs.h"
-#include "sddapi.h"
+
+extern "C" {
+    #include "sddapi.h"
+}
 
 namespace sdd {
     SddNode* createNFFormulaFromInfo(SddManager *manager, FormulaInfo info);

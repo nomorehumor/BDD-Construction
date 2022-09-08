@@ -1,6 +1,6 @@
 #filename: "C:\\dev\\Bachelor\\merlin-formulas\\wingas\\merlin-clauseset420509740828757424.txt"
-diagram_type: "bdd" # bdd, sdd
-filename: "C:/dev/Bachelor/test-formulas/test_amo.txt"
+diagram_type: "sdd" # bdd, sdd
+filename: "/home/maxim/bench/merlin-formulas-bdd/km/merlin-clauseset7497763652486267746.txt"
 output:
   print_progress: true
   output_plots: false

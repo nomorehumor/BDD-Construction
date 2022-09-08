@@ -84,6 +84,7 @@ FormulaInfo transformAMOtoDNF(FormulaInfo info) {
     formula.push_back(0);
     transformedInfo.symbols = formula;
     transformedInfo.type = Form::DNF;
+    transformedInfo.id = formula.id;
     return transformedInfo;
 }
 

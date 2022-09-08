@@ -1,4 +1,6 @@
-#include "sddapi.h"
+extern "C" {
+    #include "sddapi.h"
+}
 #include "../utils/info_structs.h"
 #include "../stats/BDDBuildStatistic.h"
 

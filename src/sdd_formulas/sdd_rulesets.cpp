@@ -18,6 +18,7 @@ SddNode* createRuleset(SddManager* sm, RulesetInfo& info, bool progress_output, 
     } else if (info.type == Form::DNF) {
         sdd = sdd_manager_false(sm);
     }
+    bool sddSet = false;
 
     chrono::steady_clock::time_point iteration_begin;
     chrono::steady_clock::time_point iteration_end;
@@ -29,12 +30,15 @@ SddNode* createRuleset(SddManager* sm, RulesetInfo& info, bool progress_output, 
         iteration_begin = chrono::steady_clock::now();
 
         SddNode *formula = sdd::createFormulaSdd(sm, info.formulas[i]);
-
         if (info.type == Form::CNF) {
             tmp = sdd_conjoin(sdd, formula, sm);
         } else if (info.type == Form::DNF) {
             tmp = sdd_disjoin(sdd, formula, sm);
         }
+        sdd_ref(tmp, sm);
+        if (sddSet) sdd_deref(sdd, sm);
+        else sddSet = true;
+        sdd = tmp;
 
         iteration_end = chrono::steady_clock::now();
 
@@ -42,8 +46,8 @@ SddNode* createRuleset(SddManager* sm, RulesetInfo& info, bool progress_output, 
                               iteration_end - iteration_begin)
                               .count();
         if (progress_output) {
-            // statistic->logStep(info.formulas.at(i), 1,
-            //                   Cudd_ReadNodeCount(gbm), stepTime_ms);
+            statistic->logStep(info.formulas.at(i), 1,
+                              sdd_count(sdd), stepTime_ms);
             // statistic->logCudd(gbm);
             statistic->logTime(chrono::duration_cast<chrono::seconds>(
                                          iteration_end - process_begin)
@@ -52,7 +56,7 @@ SddNode* createRuleset(SddManager* sm, RulesetInfo& info, bool progress_output, 
     }
 
     spdlog::info(
-        "Ruleset BDD generated in {0:d}ms",
+        "Ruleset SDD generated in {0:d}ms",
         chrono::duration_cast<chrono::milliseconds>(iteration_end - process_begin)
             .count());
 
