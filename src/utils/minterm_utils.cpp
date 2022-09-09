@@ -6,6 +6,7 @@
 #include <vector>
 #include <cudd.h>
 
+namespace bdd {
 std::vector<std::vector<bool>> getMinterms(DdManager *gbm, DdNode *bdd,
                                            int numVars, int maxAmount,
                                            bool output) {
@@ -41,6 +42,8 @@ std::vector<std::vector<bool>> getMinterms(DdManager *gbm, DdNode *bdd,
     Cudd_RecursiveDeref(gbm, currentNode);
     delete[] vars;
     return minterms;
+}
+
 }
 
 std::vector<int> convertBooleanMintermsToBinary(std::vector<std::vector<bool>> minterms) {

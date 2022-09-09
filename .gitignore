@@ -14,5 +14,5 @@ libs/
 venv/
 build2/
 small_bench_eval/
-sdd/
+sdd-version/
 small_bench_eval_force/

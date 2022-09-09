@@ -45,10 +45,8 @@ namespace sdd {
         SddNode *clause = sdd_manager_true(sm);
         bool clauseSet = false;
         SddNode *tmpVar, *tmpClause;
-        printf("building clause\n");
 
         for (int var : clauseVars) {
-            printf("%d ", var);
             tmpVar = sdd_manager_literal(var, sm);
             tmpClause = sdd_conjoin(tmpVar, clause, sm);
             sdd_ref(tmpClause, sm); 
@@ -56,7 +54,6 @@ namespace sdd {
             else clauseSet = true;
             clause = tmpClause;
         }
-        printf("\n");
         return clause;
     }
 
@@ -72,7 +69,6 @@ namespace sdd {
 
         int i = 0;
         for (std::vector<int> clause : info.clauses) {
-            printf("clause %d\n", i++);
             if (info.type == Form::DNF) {
                 clauseSdd = createDNFClause(sm, clause);
             } else if (info.type == Form::CNF) {

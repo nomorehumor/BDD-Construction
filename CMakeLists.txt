@@ -43,5 +43,7 @@ set_target_properties(libsdd PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${SDD_DIR}
 add_library(libcudd STATIC IMPORTED)
 set_target_properties(libcudd PROPERTIES IMPORTED_LOCATION ${CUDD_DIR}/cudd/.libs/libcudd.a)
 set_target_properties(libcudd PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${CUDD_DIR}/cudd)
+
 target_link_libraries(main libcudd libsdd)
+target_link_libraries(tests libcudd libsdd)
 

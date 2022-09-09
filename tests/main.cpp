@@ -3,7 +3,8 @@
 //
 
 #include "utils_tests.h"
-#include "formula_tests.h"
+#include "bdd/formula_tests.h"
+#include "sdd/formula_tests.h"
 #include "gtest/gtest.h"
 
 int main(int argc, char **argv) {

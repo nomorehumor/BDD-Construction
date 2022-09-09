@@ -70,21 +70,26 @@ FormulaInfo transformAMOtoDNF(FormulaInfo info) {
     std::vector<int> formula;
     std::vector<int> zeroTerm;
     for (int i = 0; i < info.symbols.size() - 1; i++) {
-        formula.push_back(info.symbols.at(i));
+        std::vector<int> clause;
+        clause.push_back(info.symbols.at(i));
         zeroTerm.push_back(-info.symbols.at(i));
         for (int j = 0; j < info.symbols.size() - 1; j++) {
             if (i != j) {
-                formula.push_back(-info.symbols.at(j));
+                clause.push_back(-info.symbols.at(j));
             }
         }
+        transformedInfo.clauses.push_back(clause);
+        formula.insert(formula.end(), clause.begin(), clause.end());
         formula.push_back(0);
     }
+    transformedInfo.clauses.push_back(zeroTerm);
+
     formula.insert(formula.end(), zeroTerm.begin(), zeroTerm.end());
     formula.push_back(0);
     formula.push_back(0);
     transformedInfo.symbols = formula;
     transformedInfo.type = Form::DNF;
-    transformedInfo.id = formula.id;
+    transformedInfo.id = info.id;
     return transformedInfo;
 }
 
