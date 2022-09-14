@@ -3,10 +3,10 @@
 //
 
 #include "bdd_rulesets.h"
+#include "bdd_formulas.h"
 #include "../utils/configuration.h"
 #include "spdlog/spdlog.h"
 #include <chrono>
-#include "bdd_formulas.h"
 
 namespace chrono = std::chrono;
 

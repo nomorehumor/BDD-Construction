@@ -17,10 +17,15 @@ void logRunInfo(int nodeCount, int totalTime_s, int constructionTime_s,
     std::string rulesetName = filepath.filename();
     std::string benchName = filepath.parent_path().filename();
 
-    std::string csvFileName =
-        fmt::format("output/{}_{}_{}.csv", benchName,
+    std::string csvFileName;
+    if (Configuration::getDiagramType() == "bdd") {
+        csvFileName = fmt::format("output/{}_{}_{}.csv", benchName,
                     Configuration::getRulesetOrderingStrategy(),
                     Configuration::getVariableOrdering());
+    } else if (Configuration::getDiagramType() == "sdd") {
+        csvFileName = fmt::format("output/{}_sdd.csv", benchName);
+    }
+
     bool fileExists = std::filesystem::exists(csvFileName);
     std::fstream fout;
     fout.open(csvFileName, std::ios::out | std::ios::app);

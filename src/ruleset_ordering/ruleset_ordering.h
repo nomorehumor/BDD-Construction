@@ -5,7 +5,7 @@
 #ifndef CODE_RULESET_ORDERING_H
 #define CODE_RULESET_ORDERING_H
 
-#include "../../utils/file_utils.h"
+#include "../utils/file_utils.h"
 
 RulesetInfo orderRulesetRandom(RulesetInfo& setInfo);
 RulesetInfo orderRulesetFormulaSize(RulesetInfo& setInfo, bool ascending);

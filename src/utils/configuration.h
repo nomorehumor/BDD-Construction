@@ -69,6 +69,9 @@ public:
 
         inputFilename = config["filename"].as<std::string>();
         diagramType = config["diagram_type"].as<std::string>();
+
+        vtreePath = config["vtree_path"].as<std::string>();
+
         outputPlots = config["output"]["output_plots"].as<bool>();
         skipMostFrequentVar = config["ordering"]["set"]["skip_most_frequent_var"].as<bool>();
         printProgress = config["output"]["print_progress"].as<bool>();
@@ -97,6 +100,9 @@ public:
         }
         if (parser.cmdArgumentExists("--parts_amount")) {
             mergeParts = std::stoi(parser.getCmdArgument("--parts_amount"));
+        }
+        if (parser.cmdArgumentExists("--vtree_path")) {
+            vtreePath = parser.getCmdArgument("--vtree_path");
         }
     }
 
@@ -168,6 +174,10 @@ public:
         return timeLimitMin;
     }
 
+    static std::string getVtreePath() {
+        return vtreePath;
+    }
+
     Configuration(Configuration const&) = delete;
     void operator=(Configuration const&) = delete;
 
@@ -189,8 +199,8 @@ protected:
     inline static int mergeParts = 10;
     inline static std::string outputDirectory = "output";
     inline static std::string variableOrdering = "none";
-
     inline static int timeLimitMin = 5;
+    inline static std::string vtreePath = "";
 
     Configuration() {}
     inline static Configuration* configuration_ = nullptr;

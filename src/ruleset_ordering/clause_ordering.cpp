@@ -2,13 +2,12 @@
 // Created by Maxim.Popov on 11.07.2022.
 //
 #include "clause_ordering.h"
-#include "../../utils/configuration.h"
-#include "../../utils/progress_bar.h"
-#include "FORCEPlacer.h"
+#include "../utils/configuration.h"
+#include "../utils/progress_bar.h"
+#include "../heuristics/force/FORCEPlacer.h"
 #include "matplotlibcpp.h"
 #include "spdlog/spdlog.h"
 #include <algorithm>
-#include <cudd.h>
 #include <iostream>
 #include <map>
 #include <random>

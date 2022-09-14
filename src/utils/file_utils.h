@@ -15,6 +15,6 @@ RulesetInfo readClauselSetInfo(std::string filename, bool convertAmo = false);
 
 FormulaInfo transformAMOtoDNF(FormulaInfo info);
 
-FormulaInfo getFormulaInfoFromLine(char* line, bool convertAmo = false);
+FormulaInfo getFormulaInfoFromLine(char* line);
 
 #endif //CODE_FILE_UTILS_H

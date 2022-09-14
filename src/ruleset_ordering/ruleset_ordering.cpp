@@ -3,11 +3,11 @@
 //
 
 #include "ruleset_ordering.h"
-#include "../../utils/configuration.h"
-#include "../../utils/info_structs.h"
-#include "FORCEPlacer.h"
+#include "../utils/configuration.h"
+#include "../utils/info_structs.h"
+#include "../heuristics/force/FORCEPlacer.h"
+#include "../variable_ordering/variable_ordering.h"
 #include "utils.h"
-#include "variable_ordering.h"
 #include <map>
 #include <random>
 

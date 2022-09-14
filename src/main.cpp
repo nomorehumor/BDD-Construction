@@ -1,12 +1,11 @@
 
 extern "C" {
     #include "sddapi.h"
+    // #include "sdd.h"
 }
 #include "sdd_formulas/sdd_rulesets.h"
 #include "bdd_formulas/bdd_rulesets.h"
-#include "bdd_formulas/static_ordering/clause_ordering.h"
-#include "bdd_formulas/static_ordering/ruleset_ordering.h"
-#include "bdd_formulas/static_ordering/variable_ordering.h"
+#include "ordering.h"
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/sinks/stdout_sinks.h"
@@ -21,6 +20,8 @@ extern "C" {
 #include <filesystem>
 #include <future>
 #include <iomanip>
+#include <cudd.h>
+
 
 namespace chrono = std::chrono;
 
@@ -59,72 +60,7 @@ void setup_logger() {
     spdlog::set_pattern("[%H:%M:%S:%e] [%l] %v");
 }
 
-RulesetInfo orderRuleset(DdManager *gbm, RulesetInfo &setInfo,
-                         std::string setStrategy, std::string clauseStrategy,
-                         std::string variableStrategy) {
-    RulesetInfo reorderedSet = setInfo;
 
-    BDDBuildTimeCounter::orderingStarted();
-
-    spdlog::info("Using '{}' clause static ordering heuristic", clauseStrategy);
-    if (clauseStrategy != "none") {
-        if (clauseStrategy == "bottom-up") {
-            reorderedSet = orderClausesBottomUp(setInfo);
-        } else if (clauseStrategy == "force") {
-            reorderedSet = orderClausesFORCE(setInfo);
-        } else
-            spdlog::warn(
-                "Unknown clause ordering strategy, using 'none' instead");
-    }
-
-    spdlog::info("Using '{}' ruleset static ordering heuristic", setStrategy);
-    if (setStrategy != "none") {
-        if (setStrategy == "size") {
-            reorderedSet = orderRulesetFormulaSize(
-                reorderedSet, Configuration::isAscending());
-        } else if (setStrategy == "random") {
-            reorderedSet = orderRulesetRandom(reorderedSet);
-        } else if (setStrategy == "var-frequency") {
-            reorderedSet = orderRulesetFrequentVariables(
-                reorderedSet, Configuration::isCountAllAppearances(),
-                Configuration::isSkipMostFrequentVar());
-        } else if (setStrategy == "force-modified") {
-            reorderedSet = orderRulesetModifiedFORCE(reorderedSet);
-        }  else {
-            spdlog::warn(
-                "Unknown ruleset ordering strategy, using 'none' instead");
-        }
-    }
-
-    spdlog::info("Using '{}' variable static ordering heuristic",
-                 variableStrategy);
-    if (variableStrategy != "none") {
-        std::vector<int> variableOrdering;
-        if (variableStrategy == "var-frequency") {
-            variableOrdering = orderVariablesByFrequency(
-                reorderedSet, Configuration::isSkipMostFrequentVar(),
-                Configuration::isCountAllAppearances());
-        } else if (variableStrategy == "force-modified") {
-            variableOrdering = orderVariablesModifiedFORCE(reorderedSet);
-        } else if (variableStrategy == "force") {
-            variableOrdering = orderVariablesFORCE(reorderedSet);
-        } else if (variableStrategy == "random") {
-            variableOrdering = orderVariablesRandom(reorderedSet);
-        } else {
-            spdlog::warn(
-                "Unknown variable ordering strategy, using 'none' instead");
-            return reorderedSet;
-        }
-        std::for_each(variableOrdering.begin(), variableOrdering.end(),
-                      [&](int &var) { var--; });
-        int *variableOrderingArray = &variableOrdering[0];
-        Cudd_ShuffleHeap(gbm, variableOrderingArray);
-    }
-
-    BDDBuildTimeCounter::orderingFinished();
-
-    return reorderedSet;
-}
 
 DdNode *createBDD(RulesetInfo info, DdManager *gbm) {
 
@@ -139,7 +75,7 @@ DdNode *createBDD(RulesetInfo info, DdManager *gbm) {
 
     // Static reordering
     info =
-        orderRuleset(gbm, info, Configuration::getRulesetOrderingStrategy(),
+        bdd::performOrdering(gbm, info, Configuration::getRulesetOrderingStrategy(),
                      Configuration::getClauseOrderingStrategy(),
                      Configuration::getVariableOrdering());
 
@@ -179,6 +115,7 @@ void createBddInThread(RulesetInfo info, DdManager *gbm,
 }
 
 SddNode* createSdd(RulesetInfo& info, SddManager *sm) {
+
     BDDBuildTimeCounter::constructionStarted();
     SddNode* sdd = sdd::createRuleset(sm, info, Configuration::getPrintProgress());
     BDDBuildTimeCounter::constructionFinished();
@@ -194,6 +131,7 @@ void startBDDPipeline(RulesetInfo& info) {
     DdManager *gbm = Cudd_Init(info.variableAmount, 0, CUDD_UNIQUE_SLOTS,
                                CUDD_CACHE_SLOTS, 0);
     DdNode *bdd;
+
     std::atomic<bool> constructionDone = false;
     std::thread bddConstruction(&createBddInThread, info, gbm,
                                 &constructionDone, &bdd);
@@ -210,10 +148,12 @@ void startBDDPipeline(RulesetInfo& info) {
     if (!constructionDone) {
         spdlog::warn(
             "The task has been executing for over {} minutes, stopping now", timeLimitMin.count());
-        utils::logRunInfo(Cudd_ReadNodeCount(gbm), -1, -1,
+        utils::logRunInfo(-1, -1, -1,
                           BDDBuildTimeCounter::getOrderingTimeInMilliseconds());
         exit(EXIT_FAILURE);
     }
+
+    bddConstruction.join();
 
     utils::logRunInfo(Cudd_ReadNodeCount(gbm),
                       BDDBuildTimeCounter::getTotalTimeInMilliseconds(),
@@ -232,9 +172,25 @@ void startBDDPipeline(RulesetInfo& info) {
 }
 
 void startSDDPipeline(RulesetInfo& info) {
-    SddLiteral varCount = info.variableAmount;
-    int autoGcAndMinimize = 1;
-    SddManager* manager = sdd_manager_create(varCount, autoGcAndMinimize);
+    SddManager* manager;
+    if (Configuration::getVtreePath() != "") {
+        spdlog::info("Setting vtree from {}", Configuration::getVtreePath());
+        Vtree* saved_vtree = sdd_vtree_read(Configuration::getVtreePath().c_str());
+        manager = sdd_manager_new(saved_vtree);
+    } else if (Configuration::getVariableOrdering() != "") {
+        std::vector<int> orderedVariablesInt = orderVariables(info, Configuration::getVariableOrdering());
+        std::vector<long> orderedVariables(orderedVariablesInt.begin(), orderedVariablesInt.end());   
+        SddLiteral *variableOrderingArray = &orderedVariables[0];
+        Vtree* orderedVtree = sdd_vtree_new_with_var_order(info.variableAmount, variableOrderingArray, "balanced");
+        manager = sdd_manager_new(orderedVtree);
+        sdd_manager_auto_gc_and_minimize_on(manager);
+    } else {
+        SddLiteral varCount = info.variableAmount;
+        int autoGcAndMinimize = 1;
+        manager = sdd_manager_create(varCount, autoGcAndMinimize);
+    }
+
+    info = orderRuleset(info, Configuration::getRulesetOrderingStrategy());
 
     SddNode *sdd;
     std::atomic<bool> constructionDone = false;
@@ -249,19 +205,23 @@ void startSDDPipeline(RulesetInfo& info) {
            !constructionDone) {
         std::this_thread::sleep_for(30s);
     }
+    
 
     if (!constructionDone) {
         spdlog::warn(
             "The task has been executing for over {} minutes, stopping now", timeLimitMin.count());
-        utils::logRunInfo(sdd_count(sdd), -1, -1,
-                          BDDBuildTimeCounter::getOrderingTimeInMilliseconds());
+        utils::logRunInfo(-1, -1, -1,-1);
         exit(EXIT_FAILURE);
     }
+
+    sddConstruction.join();
 
     utils::logRunInfo(sdd_count(sdd),
                       BDDBuildTimeCounter::getTotalTimeInMilliseconds(),
                       BDDBuildTimeCounter::getConstructionTimeInMilliseconds(),
                       BDDBuildTimeCounter::getOrderingTimeInMilliseconds());
+
+    // const char *vtree_filename = ((std::string)"vtree.txt").c_str();
 
     sdd_deref(sdd, manager);
     sdd_manager_free(manager);

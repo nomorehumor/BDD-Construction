@@ -5,8 +5,7 @@
 #ifndef CODE_CLAUSE_ORDERING_H
 #define CODE_CLAUSE_ORDERING_H
 
-#include "../../utils/file_utils.h"
-#include <map>
+#include "../utils/file_utils.h"
 
 RulesetInfo orderClausesFORCE(RulesetInfo setInfo);
 RulesetInfo orderClausesBottomUp(RulesetInfo &setInfo);

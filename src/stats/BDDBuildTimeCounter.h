@@ -6,6 +6,7 @@
 #define CODE_BDDBUILDTIMECOUNTER_H
 
 #include <chrono>
+#include "spdlog/spdlog.h"
 
 namespace chrono = std::chrono;
 

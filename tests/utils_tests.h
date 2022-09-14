@@ -23,7 +23,7 @@ TEST(UtilsTestsSuite, ReadCNF) {
 
 TEST(UtilsTestsSuite, ReadAMO) {
     char* line = "AMO 1 2 3 0";
-    FormulaInfo formulaInfo = getFormulaInfoFromLine(line, false);
+    FormulaInfo formulaInfo = getFormulaInfoFromLine(line);
     std::vector<int> expectedSymbols = {1, 2, 3, 0};
     EXPECT_EQ(formulaInfo.symbols, expectedSymbols);
     EXPECT_EQ(formulaInfo.type, Form::AMO);
@@ -31,7 +31,8 @@ TEST(UtilsTestsSuite, ReadAMO) {
 
 TEST(UtilsTestsSuite, ReadAMOConverted) {
     char* line = "AMO 1 2 3 0";
-    FormulaInfo formulaInfo = getFormulaInfoFromLine(line, true);
+    FormulaInfo formulaInfo = getFormulaInfoFromLine(line);
+    formulaInfo = transformAMOtoDNF(formulaInfo);
     std::vector<int> expectedSymbols = {1, -2, -3, 0, 2, -1, -3, 0, 3, -1, -2, 0, -1, -2, -3, 0, 0};
     EXPECT_EQ(formulaInfo.symbols, expectedSymbols);
     EXPECT_EQ(formulaInfo.type, Form::DNF);

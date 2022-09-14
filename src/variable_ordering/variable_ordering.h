@@ -5,7 +5,7 @@
 #ifndef CODE_VARIABLE_ORDERING_H
 #define CODE_VARIABLE_ORDERING_H
 
-#include "../../utils/file_utils.h"
+#include "../utils/file_utils.h"
 #include <vector>
 #include <map>
 

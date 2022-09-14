@@ -6,6 +6,7 @@ cmake_minimum_required(VERSION 3.16)
 project(code)
 set(CMAKE_CXX_STANDARD 20)
 
+set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
 
 set(CUDD_DIR ${CMAKE_SOURCE_DIR}/libs/cudd-3.0.0)
 set(SDD_DIR ${CMAKE_SOURCE_DIR}/libs/sdd-package-2.0/libsdd-2.0)

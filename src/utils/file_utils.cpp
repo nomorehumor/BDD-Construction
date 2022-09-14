@@ -5,7 +5,6 @@
 #include "spdlog/spdlog.h"
 #include <cstdio>
 #include <cstring>
-#include <cudd.h>
 #include <iostream>
 #include <vector>
 
@@ -56,7 +55,13 @@ RulesetInfo readClauselSetInfo(std::string filename, bool convertAmo) {
 
     for (int i = 0; i < info.clauselAmount; i++) {
         getline(&line, &length, file);
-        FormulaInfo formulaInfo = getFormulaInfoFromLine(line, convertAmo);
+        FormulaInfo formulaInfo = getFormulaInfoFromLine(line);
+        if (formulaInfo.type == Form::AMO) {
+            if (formulaInfo.containedVars.size() == 1) continue;
+            if (convertAmo) {
+                formulaInfo = transformAMOtoDNF(formulaInfo);
+            }
+        }
         formulaInfo.id = i;
         info.formulas.push_back(formulaInfo);
     }
@@ -93,7 +98,7 @@ FormulaInfo transformAMOtoDNF(FormulaInfo info) {
     return transformedInfo;
 }
 
-FormulaInfo getFormulaInfoFromLine(char* line, bool convertAmo) {
+FormulaInfo getFormulaInfoFromLine(char* line) {
     FormulaInfo info;
     std::string type = "";
     std::string temp_term = "";
@@ -138,9 +143,6 @@ FormulaInfo getFormulaInfoFromLine(char* line, bool convertAmo) {
         info.type = Form::CNF;
     } else if (type == "AMO") {
         info.type = Form::AMO;
-        if (convertAmo) {
-            info = transformAMOtoDNF(info);
-        }
     } else {
         std::cout << "Unknown formula form (nor DNF or CNF): " << type << " on line: " << line << std::endl;
         exit(EXIT_FAILURE);

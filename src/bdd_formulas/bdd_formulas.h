@@ -5,10 +5,10 @@
 #ifndef CODE_BDD_FORMULAS_H
 #define CODE_BDD_FORMULAS_H
 
-#include <iostream>
-#include <cudd.h>
-#include <vector>
 #include "../utils/file_utils.h"
+#include <iostream>
+#include <vector>
+#include <cudd.h>
 
 DdNode* createNFFormulaFromInfo(DdManager *gbm, FormulaInfo info);
 DdNode* createNFFormulaFromClauses(DdManager *gbm, FormulaInfo info);
